@@ -21,7 +21,7 @@
           <li @click.stop="navigate('shipments')">Envíos</li>
         </ul>
   
-        <li @click="navigate('user-management')"><i class="fas fa-users"></i> Administrar Usuarios</li>
+        <li @click="navigate('users')"><i class="fas fa-users"></i> Administrar Usuarios</li>
       </ul>
     </aside>
   </template>
