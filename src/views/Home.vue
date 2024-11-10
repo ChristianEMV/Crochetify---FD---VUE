@@ -1,234 +1,247 @@
 <template>
   <div>
-
     <Navbar @toggle-sidebar="toggleSidebar" />
     <Sidebar :isOpen="isSidebarOpen" />
-      <div class="header">
-          <div class="header-wrapper">
-              <h3><i class="fas fa-activity"></i> Dashboard</h3>
-              <h6>Sales overview & summary</h6>
-          </div>
-
-          <div class="row">
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body" id="users">
-          <div class="row">
-            <div class="col-sm-8">
-              <h1 id="active-users">259</h1>
-              <h6 class="title">Usuarios Totales</h6>
-              <p class="text">Usuarios totales registrados durante el mes</p>
-            </div>
-            <div class="col-sm-4 d-flex align-items-center justify-content-center">
-              <i class="fas fa-users icon-circle-users"></i>
+    <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
+      <div class="header-wrapper">
+        <h3><i class="fas fa-chart-line"></i> Dashboard</h3>
+        <h6>Sales overview & summary</h6>
+      </div>
+    </div>
+    
+    <div class="row mt-4">
+      <div class="col-sm-3" v-for="card in cards" :key="card.id">
+        <div class="card custom-card">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-sm-8">
+                <h1 :id="card.id">{{ card.value }}</h1>
+                <h6 class="title">{{ card.title }}</h6>
+                <p class="text">{{ card.description }}</p>
+              </div>
+              <div class="col-sm-4 d-flex align-items-center justify-content-center">
+                <i :class="card.iconClass" class="card-icon"></i>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body" id="sells">
-          <div class="row">
-            <div class="col-sm-8">
-              <h1 id="total-selling">843</h1>
-              <h6 class="title">Ventas Totales</h6>
-              <p class="text">Ventas totales realizadas durante el mes</p>
-            </div>
-            <div class="col-sm-4 d-flex align-items-center justify-content-center">
-              <i class="fas fa-shopping-cart icon-circle-sells"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body" id="orders">
-          <div class="row">
-            <div class="col-sm-8">
-              <h1 id="pending-orders">196</h1>
-              <h6 class="title">Pedidos en Curso</h6>
-              <p class="text">Pedidos pendientes de envío</p>
-            </div>
-            <div class="col-sm-4 d-flex align-items-center justify-content-center">
-              <i class="fas fa-box-open icon-circle-orders"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body" id="earnings">
-          <div class="row">
-            <div class="col-sm-8">
-              <h1 id="total-earnings">$59,482</h1>
-              <h6 class="title">Ganancias Totales</h6>
-              <p class="text">Total de ganancias obtenidas en el mes</p>
-            </div>
-            <div class="col-sm-4 d-flex align-items-center justify-content-center">
-              <i class="fas fa-dollar-sign  icon-circle-earnings"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-      </div>
-      <Grafic></Grafic>
+    <Grafic />
   </div>
 </template>
+
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, ref } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
 
 export default defineComponent({
-    name: "Dashboard",
-    components: { Navbar, Sidebar },
-    setup() {
-        const isSidebarOpen = ref(false);
+  name: "Dashboard",
+  components: { Navbar, Sidebar, Grafic },
+  setup() {
+    const isSidebarOpen = ref(false);
+    const cards = ref([
+      {
+        id: "active-users",
+        value: "259",
+        title: "Usuarios Totales",
+        description: "Usuarios totales registrados durante el mes",
+        iconClass: "fas fa-users icon-circle-users"
+      },
+      {
+        id: "total-selling",
+        value: "843",
+        title: "Ventas Totales",
+        description: "Ventas totales realizadas durante el mes",
+        iconClass: "fas fa-shopping-cart icon-circle-sells"
+      },
+      {
+        id: "pending-orders",
+        value: "196",
+        title: "Pedidos en Curso",
+        description: "Pedidos pendientes de envío",
+        iconClass: "fas fa-box-open icon-circle-orders"
+      },
+      {
+        id: "total-earnings",
+        value: "$59,482",
+        title: "Ganancias Totales",
+        description: "Total de ganancias obtenidas en el mes",
+        iconClass: "fas fa-dollar-sign icon-circle-earnings"
+      }
+    ]);
 
-        const toggleSidebar = () => {
-            isSidebarOpen.value = !isSidebarOpen.value;
-        };
+    const toggleSidebar = () => {
+      isSidebarOpen.value = !isSidebarOpen.value;
+    };
 
-        return { isSidebarOpen, toggleSidebar };
-    },
+    return { isSidebarOpen, cards, toggleSidebar };
+  }
 });
 </script>
 
-
 <style scoped>
-
-.offcanvas-custom-width {
-  width: 300px;
-}
-
-body{
-   overflow-x: hidden;
-   overflow-y: hidden;
-}
-
 .header {
-      width: 100%;
-      height: 25vh;
-      background: linear-gradient(135deg, #30596B, #5EAED1);
-      color: white;
-      padding: 20px;
-   }
+  width: 100%;
+  height: 25vh;
+  background: linear-gradient(135deg, #30596B, #5EAED1);
+  color: white;
+  padding: 20px;
+  transition: margin-left 0.3s;
+}
+
+.header-shift {
+  margin-left: 250px;
+}
+
+.card {
+  height: 200px; /* Ajusta la altura fija de la card */
+  min-height: 200px; /* Asegura una altura mínima */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-radius: 12px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
 
 .card:hover {
-   transform: scale(1.1); /* Aumenta un poco el tamaño */
-   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Agrega una sombra */
+  transform: scale(1.05); /* Suaviza el hover */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Mejora la sombra */
 }
 
-#users {
-   border-left: solid 25px #44B7AC;
-   line-height: 1.2; /* Disminuye la altura de línea en el card-body */
+.header-collapsed {
+  margin-left: 250px; /* Ajusta según el ancho del sidebar */
 }
 
-#orders {
-   border-left: solid 25px #30596B;
-   line-height: 1.2; /* Disminuye la altura de línea en el card-body */
+.card.custom-card {
+  background: #f9f9f9;
+  border: 0;
+  border-radius: 15px;
+  overflow: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#sells{
-   border-left: solid 25px #768ABA;
-   line-height: 1.2;
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
 }
 
-#earnings{
-   border-left: solid 25px #66CE76;
-   line-height: 1.2; 
+h1, h6, p {
+  margin: 0;
 }
 
-.title {
-   color: black;
-   font-weight: bold;
-   margin-bottom: 2px; /* Reduce el margen inferior */
+.card-body .row {
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
-.text {
-   color: #C7C7C7;
-   font-size: small;
-   margin-bottom: 3px; /* Reduce el margen inferior */
-    margin-bottom: 2px; /* Reduce el margen inferior */
+.icon-circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3em;
+  border-radius: 50%;
+  padding: 15px;
+  color: #ffffff;
 }
 
-#active-users {
-   margin-bottom: 2px; /* Reduce el margen inferior del h1 */
-   color: #44B7AC;
-}
-
-#total-selling{
-   margin-bottom: 2px; /* Reduce el margen inferior del h1 */
-   color: #768ABA;
-}
-
-#pending-orders{
-   margin-bottom: 2px; /* Reduce el margen inferior del h1 */
-   color: #30596B;
-}
-
-#total-earnings{
-   margin-bottom: 2px; /* Reduce el margen inferior del h1 */
-   color: #66CE76;
-}
-
-.icon-circle-users {
-   color: #ffffff; /* Color del icono (blanco) */
-   background-color: #44B7AC; /* Fondo del círculo */
-   border-radius: 50%; /* Hace el fondo circular */
-   padding: 15px; /* Espacio alrededor del icono dentro del círculo */
-   font-size: 3em;
+.icon-circle-users,
+.icon-circle-sells,
+.icon-circle-orders,
+.icon-circle-earnings {
+  color: #fff;
+  background-color: #44B7AC;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 2.5rem;
+  transition: background-color 0.3s;
 }
 
 .icon-circle-sells {
-   color: #ffffff; /* Color del icono (blanco) */
-   background-color: #768ABA; /* Fondo del círculo */
-   border-radius: 50%; /* Hace el fondo circular */
-   padding: 15px; /* Espacio alrededor del icono dentro del círculo */
-   font-size: 3em;
+  background-color: #768ABA;
 }
 
 .icon-circle-orders {
-   color: #ffffff; /* Color del icono (blanco) */
-   background-color: #30596B; /* Fondo del círculo */
-   border-radius: 50%; /* Hace el fondo circular */
-   padding: 15px; /* Espacio alrededor del icono dentro del círculo */
-   font-size: 3em;
+  background-color: #30596B;
 }
 
 .icon-circle-earnings {
-   color: #ffffff; /* Color del icono (blanco) */
-   background-color: #66CE76; /* Fondo del círculo */
-   border-radius: 50%; /* Hace el fondo circular */
-   padding: 15px; /* Espacio alrededor del icono dentro del círculo */
-   font-size: 3em;
+  background-color: #66CE76;
 }
 
-.stats{
-   margin-top: 12.5Svh;
+.icon-circle-users:hover,
+.icon-circle-sells:hover,
+.icon-circle-orders:hover,
+.icon-circle-earnings:hover {
+  background-color: #5EAED1;
 }
 
-#productTable {
-   width: 80%; /* Ajusta este valor según necesites */
-   margin: 0 auto; /* Centra la tabla dentro del div */
+/* Evitar que los iconos se deformen */
+.card-icon {
+  max-width: 100%; /* Asegura que el icono no se salga del contenedor */
+  max-height: 55px; /* Limita la altura máxima de los iconos */
+  object-fit: contain; /* Asegura que el icono conserve su aspecto original */
 }
 
-#productTable .table {
-   max-width: 100%; /* Limita el ancho máximo de la tabla al ancho del contenedor */
-   margin: 0 auto; /* Centra el contenido de la tabla */
+@media (max-width: 768px) {
+  .card-body {
+    flex-direction: row;
+  }
+
+  .card-body .row {
+    flex-direction: column;
+  }
 }
 
-tr{
-   justify-content: center;
+/* Estilos para mejorar la legibilidad */
+.text {
+  color: #666;
 }
 
+/* Alineación y espaciamiento */
+.header-wrapper {
+  padding: 20px;
+}
+
+.title {
+  margin-top: 10px;
+  color: #333;
+}
+
+/* Tamaño de fuente */
+h1 {
+  font-size: 2.5rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
+
+/* Diseño responsivo */
+@media (max-width: 576px) {
+  .header {
+    height: 20vh;
+  }
+
+  .header-wrapper {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h6 {
+    font-size: 0.8rem;
+  }
+}
 </style>

@@ -23,7 +23,10 @@ import { defineComponent } from "vue";
 export default defineComponent({
   props: {
     title: String,
-    count: Number,
+    count: {
+      type: Number,
+      default: 0,
+    },
     description: String,
     icon: String,
     borderColor: String,
