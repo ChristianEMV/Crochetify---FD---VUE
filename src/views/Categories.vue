@@ -29,7 +29,7 @@
   
   <style scoped>
   .dashboard {
-    margin-left: 250px; /* Espacio para el sidebar */
+    margin-left: 250px;
     padding: 2rem;
   }
   </style>

@@ -6,7 +6,7 @@
           <b-card-body class="p-4">
             <b-img src="/src/assets/CrochetifyLogo.png" alt="Logo" fluid class="mb-3 d-block mx-auto logo"></b-img>
             <h3 class="text-center mb-4">¡Bienvenido de vuelta!</h3>
-            
+
             <b-form @submit.prevent="onSubmit">
               <b-form-group
                 id="input-group-username"
@@ -15,7 +15,7 @@
               >
                 <b-form-input
                   id="input-username"
-                  v-model="form.username"
+                  v-model.trim="form.username"
                   type="text"
                   placeholder="Ingresa tu usuario"
                   required
@@ -30,7 +30,7 @@
               >
                 <b-form-input
                   id="input-password"
-                  v-model="form.password"
+                  v-model.trim="form.password"
                   type="password"
                   placeholder="Ingresa tu contraseña"
                   required
@@ -39,6 +39,10 @@
 
               <b-button type="submit" variant="dark" class="mt-3 w-100 login-button">Iniciar Sesión</b-button>
             </b-form>
+
+            <div v-if="errorMessage" class="alert alert-danger mt-3" role="alert">
+              {{ errorMessage }}
+            </div>
           </b-card-body>
         </b-col>
         <b-col md="6">
@@ -50,7 +54,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, reactive, ref } from 'vue';
+import axios from '../http-common';
 
 export default defineComponent({
   name: 'LoginView',
@@ -58,21 +63,51 @@ export default defineComponent({
     const form = reactive({
       username: '',
       password: ''
-    })
+    });
 
-    const onSubmit = () => {
-      console.log('Form submitted:', form)
-    }
+    const errorMessage = ref<string | null>(null);
+
+    const onSubmit = async () => {
+      try {
+        // Sanitizar entradas
+        if (!form.username || !form.password) {
+          errorMessage.value = 'Por favor, completa todos los campos';
+          return;
+        }
+
+        // Enviar la solicitud al backend
+        const response = await axios.post('/login', {
+          username: form.username,
+          password: form.password
+        });
+
+        // Verificar la respuesta
+        if (response.data.token) {
+          // Guardar token en un lugar seguro, como cookies seguras (recomendado desde el backend)
+          document.cookie = `authToken=${response.data.token}; Secure; HttpOnly`;
+
+          console.log('Login exitoso:', response.data);
+          // Redirección después del login exitoso
+        } else {
+          errorMessage.value = 'Error en la autenticación. Por favor, inténtalo de nuevo.';
+        }
+      } catch (error) {
+        console.error('Error en el login:', error);
+        errorMessage.value = 'Credenciales inválidas o error en el servidor';
+      }
+    };
 
     return {
       form,
+      errorMessage,
       onSubmit
-    }
+    };
   }
-})
+});
 </script>
 
 <style scoped>
+/* Tus estilos existentes */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 .login-container {
