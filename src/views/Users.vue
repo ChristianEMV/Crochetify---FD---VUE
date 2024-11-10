@@ -10,7 +10,6 @@
   import { defineComponent, ref } from "vue";
   import Navbar from "../components/Navbar.vue";
   import Sidebar from "../components/Sidebar.vue";
-import Users_component from "@/components/Users_component.vue";
 
   
   export default defineComponent({

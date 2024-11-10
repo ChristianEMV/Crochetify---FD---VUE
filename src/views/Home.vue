@@ -84,9 +84,9 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref, onMounted } from "vue";
-import Navbar from "@/components/Navbar.vue";
-import Sidebar from "@/components/Sidebar.vue";
-import Grafic from "@/components/Grafic.vue";
+import Navbar from "../components/Navbar.vue";
+import Sidebar from "../components/Sidebar.vue";
+import Grafic from "../components/Grafic.vue";
 
 export default defineComponent({
     name: "Dashboard",
