@@ -105,7 +105,7 @@
   
   <script lang="ts">
   import { defineComponent, ref, computed } from "vue";
-  import Navbar from "@/components/Navbar.vue";
+  import Navbar from "../components/Navbar.vue";
   
   export default defineComponent({
     name: "Dashboard",
