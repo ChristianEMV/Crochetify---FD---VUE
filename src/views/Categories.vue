@@ -29,13 +29,11 @@
         </template>
       </b-table>
 
-      <!-- Button to navigate to the full categories page -->
       <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullCategoriesPage">
         Ver más
       </b-button>
     </div>
 
-    <!-- Modal for Category Info -->
     <b-modal v-model="showModal" title="Información de la Categoría">
       <div>
         <p><strong>Nombre:</strong> {{ selectedCategory.nombre }}</p>
@@ -49,7 +47,7 @@
 import { defineComponent, ref, reactive } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
-import { useRouter } from 'vue-router'; // Import Vue Router
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: "Categories",
@@ -70,7 +68,6 @@ export default defineComponent({
       showModal.value = true;
     };
 
-    // Redirect to the full categories page
     const goToFullCategoriesPage = () => {
       router.push({ name: 'fullcategories' });
     };
@@ -178,7 +175,7 @@ export default defineComponent({
   padding: 20px;
 }
 .table-container {
-  width: 95%; /* Adjust the width of the table */
+  width: 98%;
   margin: 20px auto;
   background-color: #f8f9fa;
   border-radius: 10px;
@@ -209,15 +206,14 @@ export default defineComponent({
   gap: 10px;
 }
 
-/* Styling for the 'Ver más' button */
 .btn-view-more {
   display: inline-block;
   padding: 10px 20px;
   font-size: 1rem;
   text-align: center;
-  color: #007bff; /* Blue text */
+  color: #007bff;
   background-color: white;
-  border: 1px solid #007bff; /* Blue border */
+  border: 1px solid #007bff;
   border-radius: 5px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
