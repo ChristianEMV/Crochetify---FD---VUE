@@ -9,9 +9,10 @@
       </div>
     </div>
 
-    <b-alert v-model="alert.show" :variant="alert.type" dismissible>
-      {{ alert.message }}
-    </b-alert>
+    <b-alert v-if="alert.show" :variant="alert.type" dismissible>
+  {{ alert.message }}
+</b-alert>
+
 
     <div class="table-container">
       <h3 class="mb-4">Resumen de Categorías</h3>
@@ -23,13 +24,13 @@
         hover
         small
       >
-        <template #cell(nombre)="row">
+        <template #cell(name)="row">
           <b-button
             variant="link"
             class="text-primary"
             @click="showCategoryModal(row.item)"
           >
-            {{ row.item.nombre }}
+            {{ row.item.name }}
           </b-button>
         </template>
         <template #cell(actions)="row">
@@ -64,8 +65,8 @@
 
     <b-modal v-model="showModal" title="Información de la Categoría">
       <div>
-        <p><strong>Nombre:</strong> {{ selectedCategory.nombre }}</p>
-        <p><strong>Estado:</strong> {{ selectedCategory.state }}</p>
+        <p><strong>Nombre:</strong> {{ selectedCategory.name }}</p>
+        <p><strong>Estado:</strong> {{ selectedCategory.status }}</p>
       </div>
     </b-modal>
 
@@ -73,11 +74,11 @@
       <div>
         <b-form>
           <b-form-group label="Nombre de Categoría">
-            <b-form-input v-model="editCategoryData.nombre"></b-form-input>
+            <b-form-input v-model="editCategoryData.name"></b-form-input>
           </b-form-group>
           <b-form-group label="Estado de la Categoría">
             <b-form-select
-              v-model="editCategoryData.state"
+              v-model="editCategoryData.status"
               :options="['Activo', 'Deshabilitada']"
             ></b-form-select>
           </b-form-group>
@@ -105,14 +106,9 @@
       <div>
         <b-form>
           <b-form-group label="Nombre de Categoría">
-            <b-form-input v-model="newCategory.nombre"></b-form-input>
+            <b-form-input v-model="newCategory.name"></b-form-input>
           </b-form-group>
-          <b-form-group label="Estado de la Categoría">
-            <b-form-select
-              v-model="newCategory.state"
-              :options="['Activo', 'Deshabilitada']"
-            ></b-form-select>
-          </b-form-group>
+         
         </b-form>
       </div>
       <template #modal-footer>
@@ -133,7 +129,7 @@ import { useRouter } from "vue-router";
 import { categoryApi } from "../http-common";
 
 export default defineComponent({
-  name: "Categories",
+  name: "categories",
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
@@ -141,9 +137,9 @@ export default defineComponent({
     const showRegisterModal = ref(false);
     const showEditModal = ref(false);
     const alert = reactive({ show: false, message: "", type: "success" });
-    const selectedCategory = reactive({ nombre: "", state: "" });
-    const editCategoryData = reactive({ id: 0, nombre: "", state: "Activo" });
-    const newCategory = reactive({ nombre: "", state: "Activo" });
+    const selectedCategory = reactive({ name: "", status: "" });
+    const editCategoryData = reactive({ id: 0, name: "", status: "Activo" });
+    const newCategory = reactive({ name: "" });
     const categories = ref([]);
     const router = useRouter();
 
@@ -152,8 +148,8 @@ export default defineComponent({
     };
 
     const showCategoryModal = (category: any) => {
-      selectedCategory.nombre = category.nombre;
-      selectedCategory.state = category.state;
+      selectedCategory.name = category.name;
+      selectedCategory.status = category.status;
       showModal.value = true;
     };
 
@@ -163,11 +159,19 @@ export default defineComponent({
 
     const addCategory = async () => {
       try {
-        await categoryApi.createCategory(newCategory);
+        if (newCategory.name.trim() === "") {
+          alert.message = "El nombre de la categoría no puede estar vacío";
+          alert.type = "danger";
+          alert.show = true;
+          return;
+        }
+
+        await categoryApi.createCategory({ name: newCategory.name });
         await fetchCategories();
         alert.message = "Categoría agregada con éxito";
         alert.type = "success";
         alert.show = true;
+        newCategory.name = ""; // Limpiar el campo de nombre
         showRegisterModal.value = false;
       } catch (error) {
         alert.message = "Error al agregar la categoría";
@@ -176,32 +180,32 @@ export default defineComponent({
         console.error("Error al agregar la categoría:", error);
       }
     };
-
     const openEditModal = (category: any) => {
       editCategoryData.id = category.id;
-      editCategoryData.nombre = category.nombre;
-      editCategoryData.state = category.state;
+      editCategoryData.name = category.name;
+      editCategoryData.status = category.status;
       showEditModal.value = true;
     };
 
     const updateCategory = async () => {
-      try {
-        await categoryApi.updateCategory(editCategoryData.id, {
-          nombre: editCategoryData.nombre,
-          state: editCategoryData.state,
-        });
-        await fetchCategories();
-        alert.message = "Categoría actualizada con éxito";
-        alert.type = "success";
-        alert.show = true;
-        showEditModal.value = false;
-      } catch (error) {
-        alert.message = "Error al actualizar la categoría";
-        alert.type = "danger";
-        alert.show = true;
-        console.error("Error al actualizar la categoría:", error);
-      }
-    };
+  try {
+    await categoryApi.updateCategory(editCategoryData.id, {
+      name: editCategoryData.name,
+      status: editCategoryData.status,
+    });
+    await fetchCategories();
+    alert.message = "Categoría actualizada con éxito";
+    alert.type = "success";
+    alert.show = true;
+    showEditModal.value = false;
+  } catch (error) {
+    alert.message = "Error al actualizar la categoría";
+    alert.type = "danger";
+    alert.show = true;
+    console.error("Error al actualizar la categoría:", error);
+  }
+};
+
 
     const deleteCategory = async (id: number) => {
       try {
@@ -219,30 +223,31 @@ export default defineComponent({
     };
 
     const fetchCategories = async () => {
-      try {
-        const data = await categoryApi.getAllCategories();
-        categories.value = data;
-      } catch (error) {
-        console.error("Error al cargar las categorías:", error);
-      }
-    };
+  try {
+    const data = await categoryApi.getAllCategories();
+    console.log("Datos recibidos en fetchCategories:", data);
+    // Accede a response.categories para obtener el array de categorías
+    categories.value = Array.isArray(data.response.categories) ? data.response.categories : [];
+  } catch (error) {
+    console.error("Error al cargar las categorías:", error);
+    categories.value = []; // Valor predeterminado en caso de error
+  }
+};
+
+
+
 
     onMounted(() => {
       fetchCategories();
     });
 
     const fields = [
-      { key: "id", label: "ID" },
-      { key: "nombre", label: "Nombre de Categoría" },
-      { key: "productos", label: "Productos" },
-      { key: "stockTotal", label: "Stock Total" },
-      { key: "precioPromedio", label: "Precio Promedio" },
-      { key: "ventasTotales", label: "Ventas Totales" },
-      { key: "ingresos", label: "Ingresos Generados" },
-      { key: "state", label: "Estado" },
-      { key: "ultimaActualizacion", label: "Última Actualización" },
-      { key: "actions", label: "Acciones" },
-    ];
+  { key: "idCategory", label: "ID" },
+  { key: "name", label: "Nombre de Categoría" },
+  { key: "status", label: "Estado" },
+  { key: "actions", label: "Acciones" }
+];
+
 
     return {
       isSidebarOpen,

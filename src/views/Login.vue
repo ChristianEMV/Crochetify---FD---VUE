@@ -9,15 +9,15 @@
 
             <b-form @submit.prevent="onSubmit">
               <b-form-group
-                id="input-group-username"
-                label="Username:"
-                label-for="input-username"
+                id="input-group-email"
+                label="Email:"
+                label-for="input-email"
               >
                 <b-form-input
-                  id="input-username"
-                  v-model.trim="form.username"
+                  id="input-email"
+                  v-model.trim="form.email"
                   type="text"
-                  placeholder="Ingresa tu usuario"
+                  placeholder="Ingresa tu email"
                   required
                 ></b-form-input>
               </b-form-group>
@@ -56,40 +56,44 @@
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import axios from '../http-common';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'LoginView',
   setup() {
     const form = reactive({
-      username: '',
+      email: '',
       password: ''
     });
 
     const errorMessage = ref<string | null>(null);
+    const router = useRouter();
 
     const onSubmit = async () => {
       try {
-        // Sanitizar entradas
-        if (!form.username || !form.password) {
+        if (!form.email || !form.password) {
           errorMessage.value = 'Por favor, completa todos los campos';
           return;
         }
 
-        // Enviar la solicitud al backend
-        const response = await axios.post('/login', {
-          username: form.username,
+        // Realiza la solicitud de login al backend
+        const response = await axios.post('http://localhost:8080/api/crochetify/login', {
+          email: form.email,
           password: form.password
         });
 
-        // Verificar la respuesta
-        if (response.data.token) {
-          // Guardar token en un lugar seguro, como cookies seguras (recomendado desde el backend)
-          document.cookie = `authToken=${response.data.token}; Secure; HttpOnly`;
+        // Verifica si la autenticación fue exitosa
+        if (response.data.success && response.data.response.token) {
+          // Guarda el token en localStorage
+          localStorage.setItem('authToken', response.data.response.token);
 
-          console.log('Login exitoso:', response.data);
-          // Redirección después del login exitoso
+          console.log('Login exitoso:', response.data.message);
+
+          // Redirige al usuario a la página principal (Home)
+          router.push('/home');
         } else {
-          errorMessage.value = 'Error en la autenticación. Por favor, inténtalo de nuevo.';
+          // Muestra un mensaje de error si la autenticación falló
+          errorMessage.value = response.data.message || 'Error en la autenticación. Por favor, inténtalo de nuevo.';
         }
       } catch (error) {
         console.error('Error en el login:', error);

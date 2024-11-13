@@ -2,6 +2,14 @@
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
     <Sidebar :isOpen="isSidebarOpen" />
+
+    <!-- Botón de Logout -->
+    <div class="logout-container">
+      <b-button variant="danger" @click="logout" class="logout-button">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </b-button>
+    </div>
+
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-chart-line"></i> Dashboard</h3>
@@ -34,6 +42,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
+import { useRouter } from "vue-router";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
@@ -43,6 +52,8 @@ export default defineComponent({
   components: { Navbar, Sidebar, Grafic },
   setup() {
     const isSidebarOpen = ref(false);
+    const router = useRouter();
+
     const cards = ref([
       {
         id: "active-users",
@@ -78,7 +89,15 @@ export default defineComponent({
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    return { isSidebarOpen, cards, toggleSidebar };
+    const logout = () => {
+      // Eliminar el token de autenticación de localStorage
+      localStorage.removeItem("authToken");
+
+      // Redirigir al usuario a la página de login
+      router.push("/");
+    };
+
+    return { isSidebarOpen, cards, toggleSidebar, logout };
   }
 });
 </script>
@@ -98,8 +117,8 @@ export default defineComponent({
 }
 
 .card {
-  height: 200px; /* Ajusta la altura fija de la card */
-  min-height: 200px; /* Asegura una altura mínima */
+  height: 200px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -110,12 +129,12 @@ export default defineComponent({
 }
 
 .card:hover {
-  transform: scale(1.05); /* Suaviza el hover */
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Mejora la sombra */
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
 .header-collapsed {
-  margin-left: 250px; /* Ajusta según el ancho del sidebar */
+  margin-left: 250px;
 }
 
 .card.custom-card {
@@ -185,11 +204,28 @@ h1, h6, p {
   background-color: #5EAED1;
 }
 
-/* Evitar que los iconos se deformen */
 .card-icon {
-  max-width: 100%; /* Asegura que el icono no se salga del contenedor */
-  max-height: 55px; /* Limita la altura máxima de los iconos */
-  object-fit: contain; /* Asegura que el icono conserve su aspecto original */
+  max-width: 100%;
+  max-height: 55px;
+  object-fit: contain;
+}
+
+/* Estilo para el botón de logout */
+.logout-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.logout-button {
+  background-color: #d9534f;
+  border: none;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #c9302c;
 }
 
 @media (max-width: 768px) {
@@ -199,49 +235,6 @@ h1, h6, p {
 
   .card-body .row {
     flex-direction: column;
-  }
-}
-
-/* Estilos para mejorar la legibilidad */
-.text {
-  color: #666;
-}
-
-/* Alineación y espaciamiento */
-.header-wrapper {
-  padding: 20px;
-}
-
-.title {
-  margin-top: 10px;
-  color: #333;
-}
-
-/* Tamaño de fuente */
-h1 {
-  font-size: 2.5rem;
-}
-
-h6 {
-  font-size: 1rem;
-}
-
-/* Diseño responsivo */
-@media (max-width: 576px) {
-  .header {
-    height: 20vh;
-  }
-
-  .header-wrapper {
-    padding: 10px;
-  }
-
-  h1 {
-    font-size: 2rem;
-  }
-
-  h6 {
-    font-size: 0.8rem;
   }
 }
 </style>
