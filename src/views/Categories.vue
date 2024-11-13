@@ -9,27 +9,55 @@
       </div>
     </div>
 
+    <b-alert v-model="alert.show" :variant="alert.type" dismissible>
+      {{ alert.message }}
+    </b-alert>
+
     <div class="table-container">
       <h3 class="mb-4">Resumen de Categorías</h3>
-      <b-table :items="categories" :fields="fields" responsive striped hover small>
+      <b-table
+        :items="categories"
+        :fields="fields"
+        responsive
+        striped
+        hover
+        small
+      >
         <template #cell(nombre)="row">
-          <b-button variant="link" class="text-primary" @click="showCategoryModal(row.item)">
+          <b-button
+            variant="link"
+            class="text-primary"
+            @click="showCategoryModal(row.item)"
+          >
             {{ row.item.nombre }}
           </b-button>
         </template>
-        <template #cell(actions)="">
+        <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
-            <b-button variant="warning" size="sm" class="mr-2">
+            <b-button
+              variant="warning"
+              size="sm"
+              class="mr-2"
+              @click="openEditModal(row.item)"
+            >
               <i class="fas fa-edit"></i>
             </b-button>
-            <b-button variant="danger" size="sm">
+            <b-button
+              variant="danger"
+              size="sm"
+              @click="deleteCategory(row.item.id)"
+            >
               <i class="fas fa-trash"></i>
             </b-button>
           </div>
         </template>
       </b-table>
 
-      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullCategoriesPage">
+      <b-button
+        variant="outline-primary"
+        class="btn-view-more mt-4"
+        @click="goToFullCategoriesPage"
+      >
         Ver más
       </b-button>
     </div>
@@ -40,14 +68,69 @@
         <p><strong>Estado:</strong> {{ selectedCategory.state }}</p>
       </div>
     </b-modal>
+
+    <b-modal v-model="showEditModal" title="Editar Categoría">
+      <div>
+        <b-form>
+          <b-form-group label="Nombre de Categoría">
+            <b-form-input v-model="editCategoryData.nombre"></b-form-input>
+          </b-form-group>
+          <b-form-group label="Estado de la Categoría">
+            <b-form-select
+              v-model="editCategoryData.state"
+              :options="['Activo', 'Deshabilitada']"
+            ></b-form-select>
+          </b-form-group>
+        </b-form>
+      </div>
+      <template #modal-footer>
+        <b-button variant="success" @click="updateCategory"
+          >Guardar Cambios</b-button
+        >
+        <b-button variant="danger" @click="showEditModal = false"
+          >Cancelar</b-button
+        >
+      </template>
+    </b-modal>
+
+    <b-button
+      class="floating-button"
+      variant="primary"
+      @click="showRegisterModal = true"
+    >
+      <i class="fas fa-plus"></i>
+    </b-button>
+
+    <b-modal v-model="showRegisterModal" title="Registrar Categoría">
+      <div>
+        <b-form>
+          <b-form-group label="Nombre de Categoría">
+            <b-form-input v-model="newCategory.nombre"></b-form-input>
+          </b-form-group>
+          <b-form-group label="Estado de la Categoría">
+            <b-form-select
+              v-model="newCategory.state"
+              :options="['Activo', 'Deshabilitada']"
+            ></b-form-select>
+          </b-form-group>
+        </b-form>
+      </div>
+      <template #modal-footer>
+        <b-button variant="success" @click="addCategory">Agregar</b-button>
+        <b-button variant="danger" @click="showRegisterModal = false"
+          >Cancelar</b-button
+        >
+      </template>
+    </b-modal>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive } from "vue";
+import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
+import { categoryApi } from "../http-common";
 
 export default defineComponent({
   name: "Categories",
@@ -55,8 +138,14 @@ export default defineComponent({
   setup() {
     const isSidebarOpen = ref(false);
     const showModal = ref(false);
-    const selectedCategory = reactive({ nombre: '', state: '' });
-    const router = useRouter(); 
+    const showRegisterModal = ref(false);
+    const showEditModal = ref(false);
+    const alert = reactive({ show: false, message: "", type: "success" });
+    const selectedCategory = reactive({ nombre: "", state: "" });
+    const editCategoryData = reactive({ id: 0, nombre: "", state: "Activo" });
+    const newCategory = reactive({ nombre: "", state: "Activo" });
+    const categories = ref([]);
+    const router = useRouter();
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
@@ -69,78 +158,90 @@ export default defineComponent({
     };
 
     const goToFullCategoriesPage = () => {
-      router.push({ name: 'fullcategories' });
+      router.push({ name: "fullcategories" });
     };
 
-    const categories = reactive([
-      {
-        id: 1,
-        nombre: 'Lanas y Hilos',
-        productos: 120,
-        stockTotal: 500,
-        precioPromedio: '$8.50',
-        ventasTotales: 150,
-        ingresos: '$1275.00',
-        state: 'Activo',
-        ultimaActualizacion: '2024-11-09',
-      },
-      {
-        id: 2,
-        nombre: 'Agujas',
-        productos: 60,
-        stockTotal: 300,
-        precioPromedio: '$3.75',
-        ventasTotales: 90,
-        ingresos: '$337.50',
-        state: 'Activo',
-        ultimaActualizacion: '2024-11-08',
-      },
-      {
-        id: 3,
-        nombre: 'Patrones',
-        productos: 45,
-        stockTotal: 120,
-        precioPromedio: '$12.00',
-        ventasTotales: 30,
-        ingresos: '$360.00',
-        state: 'Inactivo',
-        ultimaActualizacion: '2024-11-07',
-      },
-      {
-        id: 4,
-        nombre: 'Botones',
-        productos: 80,
-        stockTotal: 250,
-        precioPromedio: '$2.50',
-        ventasTotales: 110,
-        ingresos: '$275.00',
-        state: 'Activo',
-        ultimaActualizacion: '2024-11-10',
-      },
-      {
-        id: 5,
-        nombre: 'Cintas',
-        productos: 35,
-        stockTotal: 90,
-        precioPromedio: '$5.00',
-        ventasTotales: 50,
-        ingresos: '$250.00',
-        state: 'Activo',
-        ultimaActualizacion: '2024-11-06',
+    const addCategory = async () => {
+      try {
+        await categoryApi.createCategory(newCategory);
+        await fetchCategories();
+        alert.message = "Categoría agregada con éxito";
+        alert.type = "success";
+        alert.show = true;
+        showRegisterModal.value = false;
+      } catch (error) {
+        alert.message = "Error al agregar la categoría";
+        alert.type = "danger";
+        alert.show = true;
+        console.error("Error al agregar la categoría:", error);
       }
-    ]);
+    };
+
+    const openEditModal = (category: any) => {
+      editCategoryData.id = category.id;
+      editCategoryData.nombre = category.nombre;
+      editCategoryData.state = category.state;
+      showEditModal.value = true;
+    };
+
+    const updateCategory = async () => {
+      try {
+        await categoryApi.updateCategory(editCategoryData.id, {
+          nombre: editCategoryData.nombre,
+          state: editCategoryData.state,
+        });
+        await fetchCategories();
+        alert.message = "Categoría actualizada con éxito";
+        alert.type = "success";
+        alert.show = true;
+        showEditModal.value = false;
+      } catch (error) {
+        alert.message = "Error al actualizar la categoría";
+        alert.type = "danger";
+        alert.show = true;
+        console.error("Error al actualizar la categoría:", error);
+      }
+    };
+
+    const deleteCategory = async (id: number) => {
+      try {
+        await categoryApi.deleteCategory(id);
+        await fetchCategories();
+        alert.message = "Categoría eliminada con éxito";
+        alert.type = "success";
+        alert.show = true;
+      } catch (error) {
+        alert.message = "Error al eliminar la categoría";
+        alert.type = "danger";
+        alert.show = true;
+        console.error("Error al eliminar la categoría:", error);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getAllCategories();
+        categories.value = data;
+      } catch (error) {
+        console.error("Error al cargar las categorías:", error);
+      }
+    };
+
+    onMounted(() => {
+      fetchCategories();
+    });
 
     const fields = [
-      { key: 'id', label: 'ID' },
-      { key: 'nombre', label: 'Nombre de Categoría' },
-      { key: 'productos', label: 'Productos' },
-      { key: 'stockTotal', label: 'Stock Total' },
-      { key: 'precioPromedio', label: 'Precio Promedio' },
-      { key: 'ventasTotales', label: 'Ventas Totales' },
-      { key: 'ingresos', label: 'Ingresos Generados' },
-      { key: 'state', label: 'State' },
-      { key: 'ultimaActualizacion', label: 'Última Actualización' },
-      { key: 'actions', label: 'Acciones' }
+      { key: "id", label: "ID" },
+      { key: "nombre", label: "Nombre de Categoría" },
+      { key: "productos", label: "Productos" },
+      { key: "stockTotal", label: "Stock Total" },
+      { key: "precioPromedio", label: "Precio Promedio" },
+      { key: "ventasTotales", label: "Ventas Totales" },
+      { key: "ingresos", label: "Ingresos Generados" },
+      { key: "state", label: "Estado" },
+      { key: "ultimaActualizacion", label: "Última Actualización" },
+      { key: "actions", label: "Acciones" },
     ];
 
     return {
@@ -149,11 +250,20 @@ export default defineComponent({
       categories,
       fields,
       showModal,
+      showRegisterModal,
+      showEditModal,
       selectedCategory,
+      editCategoryData,
+      newCategory,
+      alert,
       showCategoryModal,
       goToFullCategoriesPage,
+      addCategory,
+      openEditModal,
+      updateCategory,
+      deleteCategory,
     };
-  }
+  },
 });
 </script>
 
@@ -161,7 +271,7 @@ export default defineComponent({
 .header {
   width: 100%;
   height: 25vh;
-  background: linear-gradient(135deg, #30596B, #5EAED1);
+  background: linear-gradient(135deg, #30596b, #5eaed1);
   color: white;
   padding: 20px;
   transition: margin-left 0.3s;
@@ -174,6 +284,7 @@ export default defineComponent({
 .header-wrapper {
   padding: 20px;
 }
+
 .table-container {
   width: 98%;
   margin: 20px auto;
@@ -220,9 +331,24 @@ export default defineComponent({
   text-decoration: none;
 }
 
-.btn-view-more:hover {
+.btn-view-more {
   background-color: #007bff;
   color: white;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 </style>
