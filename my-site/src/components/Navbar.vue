@@ -149,7 +149,7 @@ export default defineComponent({
 }
 
 .navbar-search {
-  position: relative; /* Asegura que la lista de sugerencias se posicione correctamente */
+  position: relative;
   display: flex;
   align-items: center;
   margin-left: 15px;
@@ -172,7 +172,7 @@ export default defineComponent({
 
 .search-input {
   padding: 0.5rem;
-  flex-grow: 1; /* Asegura que el input ocupe el espacio disponible */
+  flex-grow: 1;
   border: none;
   outline: none;
   background: transparent;
@@ -185,11 +185,11 @@ export default defineComponent({
   list-style: none;
   margin: 0;
   padding: 0;
-  width: calc(100% - 1px); /* Ajusta el ancho para que coincida con el buscador */
+  width: calc(100% - 1px);
   z-index: 1000;
-  top: 100%; /* Coloca la lista justo debajo del buscador */
+  top: 100%;
   left: 0;
-  border-radius: 0 0 6px 6px; /* Redondea las esquinas inferiores */
+  border-radius: 0 0 6px 6px;
 }
 
 .suggestions-list li {
