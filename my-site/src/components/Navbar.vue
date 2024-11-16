@@ -11,9 +11,16 @@
           type="text"
           placeholder="Buscar"
           class="search-input"
+          v-model="searchTerm"
           @focus="isSearchActive = true"
           @blur="isSearchActive = false"
+          @input="updateSuggestions"
         />
+        <ul v-if="suggestions.length" class="suggestions-list">
+          <li v-for="suggestion in suggestions" :key="suggestion" @mousedown.prevent="handleSuggestionClick(suggestion)">
+            {{ suggestion }}
+          </li>
+        </ul>
       </div>
     </div>
 
@@ -34,6 +41,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Navbar",
@@ -46,6 +54,34 @@ export default defineComponent({
   emits: ["toggle-sidebar"],
   setup(_, { emit }) {
     const isSearchActive = ref(false);
+    const searchTerm = ref("");
+    const suggestions = ref<string[]>([]);
+    const router = useRouter();
+
+    const searchItems = [
+      { name: "Administrar Categorias", route: "/categories" },
+      { name: "Administrar Productos", route: "/products" },
+      { name: "Administrar Stock", route: "/stock" },
+      { name: "Administrar Usuarios", route: "/users" },
+      { name: "Administrar Pedidos", route: "/orders" },
+    ];
+
+    const updateSuggestions = () => {
+      if (searchTerm.value) {
+        suggestions.value = searchItems
+          .filter(item => item.name.toLowerCase().includes(searchTerm.value.toLowerCase()))
+          .map(item => item.name);
+      } else {
+        suggestions.value = [];
+      }
+    };
+
+    const handleSuggestionClick = (suggestion: string) => {
+      const selectedItem = searchItems.find(item => item.name === suggestion);
+      if (selectedItem) {
+        router.push(selectedItem.route);
+      }
+    };
 
     const toggleSidebar = () => {
       emit("toggle-sidebar");
@@ -54,8 +90,12 @@ export default defineComponent({
     return {
       toggleSidebar,
       isSearchActive,
+      searchTerm,
+      suggestions,
+      updateSuggestions,
+      handleSuggestionClick
     };
-  },
+  }
 });
 </script>
 
@@ -109,6 +149,7 @@ export default defineComponent({
 }
 
 .navbar-search {
+  position: relative; /* Asegura que la lista de sugerencias se posicione correctamente */
   display: flex;
   align-items: center;
   margin-left: 15px;
@@ -131,11 +172,33 @@ export default defineComponent({
 
 .search-input {
   padding: 0.5rem;
+  flex-grow: 1; /* Asegura que el input ocupe el espacio disponible */
   border: none;
-  width: 100%;
   outline: none;
-  background-color: transparent;
-  font-size: 1rem;
+  background: transparent;
+}
+
+.suggestions-list {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: calc(100% - 1px); /* Ajusta el ancho para que coincida con el buscador */
+  z-index: 1000;
+  top: 100%; /* Coloca la lista justo debajo del buscador */
+  left: 0;
+  border-radius: 0 0 6px 6px; /* Redondea las esquinas inferiores */
+}
+
+.suggestions-list li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions-list li:hover {
+  background-color: #f0f0f0;
 }
 
 .navbar-center {

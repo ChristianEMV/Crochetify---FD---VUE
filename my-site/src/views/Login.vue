@@ -4,7 +4,7 @@
       <b-row no-gutters>
         <b-col md="6">
           <b-card-body class="p-4">
-            <b-img src="/src/assets/CrochetifyLogo.png" alt="Logo" fluid class="mb-3 d-block mx-auto logo"></b-img>
+            <b-img src="/src/assets/CrochetifyLogo.png" alt="App Icon" fluid class="mb-3 d-block mx-auto logo"></b-img>
             <h3 class="text-center mb-4">¡Bienvenido de vuelta!</h3>
 
             <b-form @submit.prevent="onSubmit">
@@ -37,7 +37,14 @@
                 ></b-form-input>
               </b-form-group>
 
-              <b-button type="submit" variant="dark" class="mt-3 w-100 login-button">Iniciar Sesión</b-button>
+              <b-button :disabled="isLoading" type="submit" variant="dark" class="mt-3 w-100 login-button">
+                <span v-if="isLoading">
+                  <b-spinner small></b-spinner> Iniciando...
+                </span>
+                <span v-else>
+                  Iniciar Sesión
+                </span>
+              </b-button>
             </b-form>
 
             <div v-if="errorMessage" class="alert alert-danger mt-3" role="alert">
@@ -67,6 +74,7 @@ export default defineComponent({
     });
 
     const errorMessage = ref<string | null>(null);
+    const isLoading = ref(false);
     const router = useRouter();
 
     const onSubmit = async () => {
@@ -76,34 +84,36 @@ export default defineComponent({
           return;
         }
 
-        // Realiza la solicitud de login al backend
+        isLoading.value = true;
+
         const response = await axios.post('http://localhost:8080/api/crochetify/login', {
           email: form.email,
           password: form.password
         });
 
-        // Verifica si la autenticación fue exitosa
         if (response.data.success && response.data.response.token) {
-          // Guarda el token en localStorage
           localStorage.setItem('authToken', response.data.response.token);
 
           console.log('Login exitoso:', response.data.message);
 
-          // Redirige al usuario a la página principal (Home)
-          router.push('/home');
+          setTimeout(() => {
+            router.push('/home');
+          }, 1000);
         } else {
-          // Muestra un mensaje de error si la autenticación falló
           errorMessage.value = response.data.message || 'Error en la autenticación. Por favor, inténtalo de nuevo.';
         }
       } catch (error) {
         console.error('Error en el login:', error);
         errorMessage.value = 'Credenciales inválidas o error en el servidor';
+      } finally {
+        isLoading.value = false;
       }
     };
 
     return {
       form,
       errorMessage,
+      isLoading,
       onSubmit
     };
   }
@@ -111,7 +121,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Tus estilos existentes */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 .login-container {

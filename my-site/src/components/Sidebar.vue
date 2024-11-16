@@ -31,6 +31,14 @@
 
       <li @click="navigate('users')"><i class="fas fa-users"></i> Administrar Usuarios</li>
 
+      <hr class="divider" />
+
+    <div class="logout-container">
+      <b-button variant="danger" @click="logout" class="logout-button">
+        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+      </b-button>
+    </div>
+
     </ul>
   </aside>
 </template>
@@ -73,10 +81,18 @@ export default defineComponent({
       router.push({ name: route });
     };
 
+    
+    const logout = () => {
+      localStorage.removeItem("authToken");
+
+      router.push("/");
+    };
+
     return {
       activeMenu,
       isResourceOpen,
       isSalesOpen,
+      logout,
       toggleResourceMenu,
       toggleSalesMenu,
       navigate,
@@ -176,5 +192,16 @@ li.active {
 
 .dark-mode li:hover {
   background-color: #2a2a2a;
+}
+
+.logout-button {
+  background-color: #d92822;
+  border: none;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #881713;
 }
 </style>

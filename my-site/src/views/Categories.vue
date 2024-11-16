@@ -9,29 +9,72 @@
       </div>
     </div>
 
-    <b-alert v-if="alert.show" :variant="alert.type" dismissible>
-  {{ alert.message }}
-</b-alert>
-
+    <transition name="fade">
+      <b-alert v-if="alert.show" :variant="alert.type" dismissible @dismissed="alert.show = false" class="alert-bottom-left">
+        {{ alert.message }}
+      </b-alert>
+    </transition>
 
     <div class="table-container">
       <h3 class="mb-4">Resumen de Categorías</h3>
-      <b-table
-        :items="categories"
-        :fields="fields"
-        responsive
-        striped
-        hover
-        small
-      >
+      <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
+        <i class="fas fa-plus"></i> Agregar Categoría
+      </b-button>
+
+      <transition name="fade">
+        <div v-if="showCreateForm" class="mb-4 form-container">
+          <b-form @submit.prevent="createCategory">
+            <b-form-group label="Nombre de Categoría" label-for="category-name-input">
+              <b-form-input
+                id="category-name-input"
+                v-model="newCategoryData.name"
+                required
+                placeholder="Introduce el nombre de la categoría"
+              ></b-form-input>
+            </b-form-group>
+            <br>
+            <div class="button-group">
+              <b-button variant="danger" @click="toggleCreateForm">Cancelar</b-button>
+              <b-button variant="success" type="submit">Guardar</b-button>
+            </div>
+          </b-form>
+        </div>
+      </transition>
+
+      <transition name="fade">
+        <div v-if="showEditForm" class="mb-4 form-container">
+          <b-form @submit.prevent="updateCategoryStatus">
+            <b-form-group label="ID de la Categoría:">
+              <p>{{ editCategoryData.id }}</p>
+            </b-form-group>
+            <b-form-group label="Nombre de la Categoría">
+              <p>{{ editCategoryData.name }}</p>
+            </b-form-group>
+            <b-form-group label="Estado de la Categoría">
+              <b-form-select v-model="editCategoryData.status" :options="['Activo', 'Deshabilitada']"></b-form-select>
+            </b-form-group>
+            <br>
+            <div class="button-group">
+              <b-button variant="danger" @click="toggleEditForm">Cancelar</b-button>
+              <b-button variant="success" type="submit">Guardar Cambios</b-button>
+            </div>
+          </b-form>
+        </div>
+      </transition>
+
+      <div v-if="isLoading" class="spinner-container">
+        <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
+      </div>
+
+      <b-table v-else :items="categories" :fields="fields" responsive striped hover small>
+        <template #cell(id)="row">
+          <span>{{ row.item.id }}</span>
+        </template>
         <template #cell(name)="row">
-          <b-button
-            variant="link"
-            class="text-primary"
-            @click="showCategoryModal(row.item)"
-          >
-            {{ row.item.name }}
-          </b-button>
+          <span>{{ row.item.name }}</span>
+        </template>
+        <template #cell(status)="row">
+          <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
@@ -39,85 +82,19 @@
               variant="warning"
               size="sm"
               class="mr-2"
-              @click="openEditModal(row.item)"
+              @click="openEditForm(row.item)"
             >
               <i class="fas fa-edit"></i>
-            </b-button>
-            <b-button
-              variant="danger"
-              size="sm"
-              @click="deleteCategory(row.item.id)"
-            >
-              <i class="fas fa-trash"></i>
+              Editar Categoría
             </b-button>
           </div>
         </template>
       </b-table>
 
-      <b-button
-        variant="outline-primary"
-        class="btn-view-more mt-4"
-        @click="goToFullCategoriesPage"
-      >
+      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullCategoriesPage">
         Ver más
       </b-button>
     </div>
-
-    <b-modal v-model="showModal" title="Información de la Categoría">
-      <div>
-        <p><strong>Nombre:</strong> {{ selectedCategory.name }}</p>
-        <p><strong>Estado:</strong> {{ selectedCategory.status }}</p>
-      </div>
-    </b-modal>
-
-    <b-modal v-model="showEditModal" title="Editar Categoría">
-      <div>
-        <b-form>
-          <b-form-group label="Nombre de Categoría">
-            <b-form-input v-model="editCategoryData.name"></b-form-input>
-          </b-form-group>
-          <b-form-group label="Estado de la Categoría">
-            <b-form-select
-              v-model="editCategoryData.status"
-              :options="['Activo', 'Deshabilitada']"
-            ></b-form-select>
-          </b-form-group>
-        </b-form>
-      </div>
-      <template #modal-footer>
-        <b-button variant="success" @click="updateCategory"
-          >Guardar Cambios</b-button
-        >
-        <b-button variant="danger" @click="showEditModal = false"
-          >Cancelar</b-button
-        >
-      </template>
-    </b-modal>
-
-    <b-button
-      class="floating-button"
-      variant="primary"
-      @click="showRegisterModal = true"
-    >
-      <i class="fas fa-plus"></i>
-    </b-button>
-
-    <b-modal v-model="showRegisterModal" title="Registrar Categoría">
-      <div>
-        <b-form>
-          <b-form-group label="Nombre de Categoría">
-            <b-form-input v-model="newCategory.name"></b-form-input>
-          </b-form-group>
-         
-        </b-form>
-      </div>
-      <template #modal-footer>
-        <b-button variant="success" @click="addCategory">Agregar</b-button>
-        <b-button variant="danger" @click="showRegisterModal = false"
-          >Cancelar</b-button
-        >
-      </template>
-    </b-modal>
   </div>
 </template>
 
@@ -133,13 +110,12 @@ export default defineComponent({
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
-    const showModal = ref(false);
-    const showRegisterModal = ref(false);
-    const showEditModal = ref(false);
+    const showCreateForm = ref(false);
+    const showEditForm = ref(false);
+    const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
-    const selectedCategory = reactive({ name: "", status: "" });
+    const newCategoryData = reactive({ name: "" });
     const editCategoryData = reactive({ id: 0, name: "", status: "Activo" });
-    const newCategory = reactive({ name: "" });
     const categories = ref([]);
     const router = useRouter();
 
@@ -147,126 +123,138 @@ export default defineComponent({
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    const showCategoryModal = (category: any) => {
-      selectedCategory.name = category.name;
-      selectedCategory.status = category.status;
-      showModal.value = true;
-    };
-
     const goToFullCategoriesPage = () => {
       router.push({ name: "fullcategories" });
     };
 
-    const addCategory = async () => {
-      try {
-        if (newCategory.name.trim() === "") {
-          alert.message = "El nombre de la categoría no puede estar vacío";
-          alert.type = "danger";
-          alert.show = true;
-          return;
-        }
+    const toggleCreateForm = () => {
+      showCreateForm.value = !showCreateForm.value;
+      newCategoryData.name = "";
+    };
 
-        await categoryApi.createCategory({ name: newCategory.name });
+    const toggleEditForm = () => {
+      showEditForm.value = !showEditForm.value;
+      editCategoryData.id = 0;
+      editCategoryData.name = "";
+      editCategoryData.status = "Activo";
+    };
+
+    const createCategory = async () => {
+      try {
+        await categoryApi.createCategory({ name: newCategoryData.name });
         await fetchCategories();
-        alert.message = "Categoría agregada con éxito";
+        alert.message = "Categoría creada con éxito";
         alert.type = "success";
         alert.show = true;
-        newCategory.name = ""; // Limpiar el campo de nombre
-        showRegisterModal.value = false;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+        showCreateForm.value = false;
+        newCategoryData.name = "";
       } catch (error) {
-        alert.message = "Error al agregar la categoría";
+        alert.message = "Error al crear la categoría";
         alert.type = "danger";
         alert.show = true;
-        console.error("Error al agregar la categoría:", error);
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+        console.error("Error al crear la categoría:", error);
       }
     };
-    const openEditModal = (category: any) => {
+
+    const openEditForm = (category: any) => {
+      if(!category.id){
+        console.error("ID de la categoría no encontrado", category);
+        return;
+      }
       editCategoryData.id = category.id;
       editCategoryData.name = category.name;
       editCategoryData.status = category.status;
-      showEditModal.value = true;
+      console.log("ID de la categoría:", editCategoryData.id);
+      showEditForm.value = true;
     };
 
-    const updateCategory = async () => {
-  try {
-    await categoryApi.updateCategory(editCategoryData.id, {
-      name: editCategoryData.name,
-      status: editCategoryData.status,
-    });
-    await fetchCategories();
-    alert.message = "Categoría actualizada con éxito";
-    alert.type = "success";
-    alert.show = true;
-    showEditModal.value = false;
-  } catch (error) {
-    alert.message = "Error al actualizar la categoría";
-    alert.type = "danger";
-    alert.show = true;
-    console.error("Error al actualizar la categoría:", error);
-  }
-};
-
-
-    const deleteCategory = async (id: number) => {
+    const updateCategoryStatus = async () => {
       try {
-        await categoryApi.deleteCategory(id);
+        const status = editCategoryData.status === 'Activo';
+        await categoryApi.updateCategoryStatus(editCategoryData.id, status);
+        console.log("ID de la categoría:", editCategoryData.id);
         await fetchCategories();
-        alert.message = "Categoría eliminada con éxito";
+        alert.message = "Estado de la categoría actualizado con éxito";
         alert.type = "success";
         alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+        showEditForm.value = false;
       } catch (error) {
-        alert.message = "Error al eliminar la categoría";
+        alert.message = "Error al actualizar el estado de la categoría";
         alert.type = "danger";
         alert.show = true;
-        console.error("Error al eliminar la categoría:", error);
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+        console.error("Error al actualizar el estado de la categoría:", error);
       }
     };
 
     const fetchCategories = async () => {
-  try {
-    const data = await categoryApi.getAllCategories();
-    console.log("Datos recibidos en fetchCategories:", data);
-    // Accede a response.categories para obtener el array de categorías
-    categories.value = Array.isArray(data.response.categories) ? data.response.categories : [];
-  } catch (error) {
-    console.error("Error al cargar las categorías:", error);
-    categories.value = []; // Valor predeterminado en caso de error
-  }
-};
+      try {
+        isLoading.value = true;
+        const data = await categoryApi.getAllCategories();
+        const allCategories = Array.isArray(data.response.categories) ? data.response.categories.map((cat: { idCategory: any; name: any; status: any; }) => ({
+          id: cat.idCategory,
+          name: cat.name,
+          status: cat.status
+        })) : [];
+        categories.value = allCategories.slice(-5); // Tomar los últimos 5 elementos
+      } catch (error) {
+        console.error("Error al cargar las categorías:", error);
+        categories.value = [];
+      } finally {
+        isLoading.value = false;
+      }
+    };
 
-
-
+    const fetchCategoryById = async (id: number) => {
+      try {
+        const data = await categoryApi.getCategoryById(id);
+        return data.response.category;
+      } catch (error) {
+        console.error("Error al obtener la categoría:", error);
+        return null;
+      }
+    };
 
     onMounted(() => {
       fetchCategories();
     });
 
     const fields = [
-  { key: "idCategory", label: "ID" },
-  { key: "name", label: "Nombre de Categoría" },
-  { key: "status", label: "Estado" },
-  { key: "actions", label: "Acciones" }
-];
-
+      { key: "id", label: "ID" },
+      { key: "name", label: "Nombre de Categoría" },
+      { key: "status", label: "Estado" },
+      { key: "actions", label: "Acciones" }
+    ];
 
     return {
       isSidebarOpen,
       toggleSidebar,
       categories,
       fields,
-      showModal,
-      showRegisterModal,
-      showEditModal,
-      selectedCategory,
+      showCreateForm,
+      showEditForm,
+      newCategoryData,
       editCategoryData,
-      newCategory,
       alert,
-      showCategoryModal,
+      toggleCreateForm,
+      toggleEditForm,
+      createCategory,
+      openEditForm,
+      updateCategoryStatus,
       goToFullCategoriesPage,
-      addCategory,
-      openEditModal,
-      updateCategory,
-      deleteCategory,
+      isLoading,
+      fetchCategoryById,
     };
   },
 });
@@ -342,18 +330,46 @@ export default defineComponent({
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-.floating-button {
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.custom-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: #007bff;
+}
+
+.form-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.alert-bottom-left {
   position: fixed;
   bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  left: 20px;
+  z-index: 1050;
 }
 </style>

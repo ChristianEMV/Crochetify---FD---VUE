@@ -3,13 +3,6 @@
     <Navbar @toggle-sidebar="toggleSidebar" />
     <Sidebar :isOpen="isSidebarOpen" />
 
-    <!-- Botón de Logout -->
-    <div class="logout-container">
-      <b-button variant="danger" @click="logout" class="logout-button">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </b-button>
-    </div>
-
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-chart-line"></i> Dashboard</h3>
@@ -89,15 +82,8 @@ export default defineComponent({
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    const logout = () => {
-      // Eliminar el token de autenticación de localStorage
-      localStorage.removeItem("authToken");
 
-      // Redirigir al usuario a la página de login
-      router.push("/");
-    };
-
-    return { isSidebarOpen, cards, toggleSidebar, logout };
+    return { isSidebarOpen, cards, toggleSidebar };
   }
 });
 </script>
@@ -209,23 +195,10 @@ h1, h6, p {
   max-height: 55px;
   object-fit: contain;
 }
-
-/* Estilo para el botón de logout */
 .logout-container {
   position: absolute;
   top: 20px;
   right: 20px;
-}
-
-.logout-button {
-  background-color: #d9534f;
-  border: none;
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-.logout-button:hover {
-  background-color: #c9302c;
 }
 
 @media (max-width: 768px) {
