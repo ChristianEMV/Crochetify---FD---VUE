@@ -51,4 +51,51 @@ export const categoryApi = {
   }
 };
 
+export const userApi = {
+  getAllUsers: async () => {
+    try {
+      const response = await instance.get('/users');
+      console.log('Usuarios obtenidos de la API:', response.data);
+      return response.data; // Retorna una lista de `UserDto`
+    } catch (error) {
+      console.error('Error al obtener los usuarios:', error);
+      throw error;
+    }
+  },
+
+  createUser: async ({ name, email, status, image }: { name: string, email: string, status: boolean, image: string }) => {
+    try {
+      const response = await instance.post('/users', { name, email, status, image });
+      console.log("Usuario creado:", response.data);
+      return response.data; // Retorna el `UserDto` creado
+    } catch (error) {
+      console.error('Error al crear el usuario:', error);
+      throw error;
+    }
+  },
+
+  updateUserStatus: async (idUser: number, status: boolean) => {
+    try {
+      const response = await instance.put(`/users/${idUser}/status`, { status });
+      console.log("Estado del usuario actualizado:", response.data);
+      return response.data; // Retorna el `UserDto` con el estado actualizado
+    } catch (error) {
+      console.error('Error al actualizar el estado del usuario:', error);
+      throw error;
+    }
+  },
+
+  getUserById: async (idUser: number) => {
+    try {
+      const response = await instance.get(`/users/${idUser}`);
+      console.log('Usuario obtenido:', response.data);
+      return response.data; // Retorna un único `UserDto`
+    } catch (error) {
+      console.error('Error al obtener el usuario:', error);
+      throw error;
+    }
+  }
+};
+
+
 export default instance;

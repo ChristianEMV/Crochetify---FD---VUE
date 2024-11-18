@@ -42,13 +42,7 @@
             >
               <i class="fas fa-edit"></i>
             </b-button>
-            <b-button
-              variant="danger"
-              size="sm"
-              @click="deleteUser(row.item.idUser)"
-            >
-              <i class="fas fa-trash"></i>
-            </b-button>
+
           </div>
         </template>
       </b-table>
@@ -111,6 +105,7 @@ import Sidebar from "../components/Sidebar.vue";
 import { useRouter } from "vue-router";
 import { userApi } from "../http-common";
 
+
 export default defineComponent({
   name: "users",
   components: { Navbar, Sidebar },
@@ -147,15 +142,18 @@ export default defineComponent({
       // ...
     };
 
-    const deleteUser = async (id: string) => {
-      // Lógica para eliminar un usuario
-      // ...
-    };
 
     const fetchUsers = async () => {
-      // Lógica para obtener los usuarios
-      // ...
-    };
+  try {
+    const data = await userApi.getAllUsers();
+    console.log("Datos recibidos en fetchUsers:", data);
+    // Accede a response.categories para obtener el array de categorías
+    users.value = Array.isArray(data.response.users) ? data.response.users : [];
+  } catch (error) {
+    console.error("Error al cargar los usuarios:", error);
+    users.value = []; // Valor predeterminado en caso de error
+  }
+};
 
     onMounted(() => {
       fetchUsers();
@@ -183,7 +181,7 @@ export default defineComponent({
       goToFullUsersPage,
       openEditModal,
       updateUser,
-      deleteUser,
+
     };
   },
 });
