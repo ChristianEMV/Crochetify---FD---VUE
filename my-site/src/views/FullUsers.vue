@@ -7,25 +7,33 @@
           <div class="d-flex justify-content-between mb-3">
             <h3 class="text-center mb-4">Usuarios</h3>
   
-            <b-form-group label="Filtrar por estado: " class="filter-label d-flex align-items-center">
-              <b-form-select v-model="statusFilter" :options="statusFilterOptions" class="w-auto" @change="applyFilters" />
+            <b-form-group
+              label="Filtrar por estado: "
+              class="filter-label d-flex align-items-center"
+            >
+              <b-form-select v-model="statusFilter" :options="statusFilterOptions" class="w-auto" />
             </b-form-group>
   
             <b-form-select v-model="itemsPerPage" :options="pageOptions" class="w-auto" />
           </div>
   
-          <!-- Tabla de usuarios -->
           <b-table :items="filteredUsers" :fields="fields" bordered hover responsive>
-            <template #cell(acciones)="data">
-              <b-button
-                size="sm"
-                :variant="data.item.status ? 'danger' : 'warning'"
-                @click="toggleStatus(data.item)"
-              >
-                {{ data.item.status ? 'Bloquear' : 'Desbloquear' }}
-              </b-button>
-            </template>
-          </b-table>
+  <template #cell(status)="data">
+    <span>
+      {{ data.item.status ? "Habilitado" : "Deshabilitado" }}
+    </span>
+  </template>
+  <template #cell(actions)="data">
+    <b-button
+      size="sm"
+      :variant="data.item.status ? 'danger' : 'warning'"
+      @click="toggleStatus(data.item)"
+    >
+      {{ data.item.status ? "Deshabilitar" : "Habilitar" }}
+    </b-button>
+  </template>
+</b-table>
+
   
           <b-pagination
             v-model="currentPage"
@@ -38,85 +46,154 @@
     </div>
   </template>
   
-  <script>
-  import { ref, computed } from 'vue';
-  import Navbar from '@/components/Navbar.vue';
-  import Sidebar from '@/components/Sidebar.vue';
+  <script lang="ts">
+  import { defineComponent, ref, reactive, computed, onMounted } from "vue";
+  import Navbar from "../components/Navbar.vue";
+  import Sidebar from "../components/Sidebar.vue";
+  import { useRouter } from "vue-router";
+  import { userApi } from "../http-common";
   
-  export default {
-    name: 'UsersTable',
+  interface User {
+    idUser: string;
+    name: string;
+    email: string;
+    status: boolean;
+  }
+  
+  export default defineComponent({
+    name: "UsersTable",
     components: { Navbar, Sidebar },
     setup() {
       const isSidebarOpen = ref(false);
+      const showModal = ref(false);
+  
+      const alert = reactive({ show: false, message: "", type: "success" });
+      const selectedUser = reactive<User>({
+        idUser: "",
+        name: "",
+        email: "",
+        status: false,
+      });
+      const users = ref<User[]>([]);
+      const statusFilter = ref<null | boolean>(null);
+      const itemsPerPage = ref(10);
+      const currentPage = ref(1);
+      const router = useRouter();
+  
       const toggleSidebar = () => {
         isSidebarOpen.value = !isSidebarOpen.value;
       };
   
-      const fields = [
-        { key: 'idUser', label: 'ID de Usuario', sortable: true },
-        { key: 'name', label: 'Nombre', sortable: true },
-        { key: 'email', label: 'Correo Electrónico', sortable: true },
-        { key: 'status', label: 'Estado', sortable: true },
-        { key: 'acciones', label: 'Acciones' }
-      ];
-  
-      const users = ref([
-        {
-          idUser: 'U001',
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          status: true, // true: desbloqueado, false: bloqueado
-          image: 'https://via.placeholder.com/100'
-        },
-        {
-          idUser: 'U002',
-          name: 'Jane Smith',
-          email: 'jane.smith@example.com',
-          status: false,
-          image: 'https://via.placeholder.com/100'
-        }
-      ]);
-  
-      const statusFilter = ref(null);
-      const itemsPerPage = ref(10);
-  
-      const toggleStatus = (user) => {
-        user.status = !user.status;
-        console.log(`Usuario ${user.idUser} actualizado a estado: ${user.status ? 'Desbloqueado' : 'Bloqueado'}`);
+      const showUserModal = (user: User) => {
+        Object.assign(selectedUser, user);
+        showModal.value = true;
       };
   
+      const goToFullUsersPage = () => {
+        router.push({ name: "fullusers" });
+      };
+  
+    // Función para obtener los usuarios
+    const fetchUsers = async () => {
+      try {
+        const data = await userApi.getAllUsers();
+        console.log("Datos recibidos:", data);
+        users.value = Array.isArray(data.response.users) ? data.response.users : [];
+      } catch (error) {
+        console.error("Error al cargar los usuarios:", error);
+        alert.show = true;
+        alert.message = "Error al cargar los usuarios.";
+        alert.type = "danger";
+        users.value = [];
+      } finally {
+        
+      }
+    };
+
+    onMounted(fetchUsers);
+
+    // Función para cambiar el estado del usuario
+    const toggleStatus = async (user: any) => {
+      if (!user.idUser) {
+        alert.message = "El ID del usuario no está disponible.";
+        alert.type = "danger";
+        alert.show = true;
+        return;
+      }
+
+      try {
+        const newStatus = !user.status;
+        const response = await userApi.updateUserStatus(user.idUser, newStatus);
+        if (response && response.success) {
+          user.status = newStatus; // Actualizar el estado localmente
+          alert.message = "Estado del usuario actualizado con éxito";
+          alert.type = "success";
+        } else {
+          throw new Error("La respuesta de la API no es la esperada");
+        }
+      } catch (error) {
+        console.error("Error al actualizar el estado:", error);
+        alert.message = "Error al actualizar el estado del usuario";
+        alert.type = "danger";
+      } finally {
+        alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+      }
+    };
+
+  
+      // Filtrar usuarios por estado
+      const filteredUsers = computed(() => {
+        return users.value.filter((user) =>
+          statusFilter.value === null ? true : user.status === statusFilter.value
+        );
+      });
+  
+      const fields = [
+        { key: "idUser", label: "ID de Usuario", sortable: true },
+        { key: "name", label: "Nombre", sortable: true },
+        { key: "email", label: "Email", sortable: true },
+        { key: "status", label: "Estado", sortable: true },
+        { key: "actions", label: "Acciones" },
+      ];
+  
       const statusFilterOptions = [
-        { value: null, text: 'Todos los usuarios' },
-        { value: true, text: 'Desbloqueados' },
-        { value: false, text: 'Bloqueados' }
+        { value: null, text: "Todos los usuarios" },
+        { value: true, text: "Habilitados" },
+        { value: false, text: "Deshabilitados" },
       ];
   
       const pageOptions = ref([10, 20, 30]);
   
-      const filteredUsers = computed(() => {
-        return users.value.filter((user) => {
-          if (statusFilter.value === null) {
-            return true;
-          }
-          return user.status === statusFilter.value;
-        });
+      onMounted(() => {
+        fetchUsers();
       });
   
       return {
         isSidebarOpen,
         toggleSidebar,
-        fields,
         users,
+        fields,
+        showModal,
+        selectedUser,
+        alert,
+        showUserModal,
+        goToFullUsersPage,
+        toggleStatus,
         statusFilter,
         statusFilterOptions,
         itemsPerPage,
         pageOptions,
+        currentPage,
         filteredUsers,
-        toggleStatus
       };
-    }
-  };
+    },
+  });
   </script>
+  
+  
 <style scoped>
 .modern-card {
   border-radius: 15px;

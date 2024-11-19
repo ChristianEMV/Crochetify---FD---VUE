@@ -63,17 +63,6 @@ export const userApi = {
     }
   },
 
-  createUser: async ({ name, email, status, image }: { name: string, email: string, status: boolean, image: string }) => {
-    try {
-      const response = await instance.post('/users', { name, email, status, image });
-      console.log("Usuario creado:", response.data);
-      return response.data; // Retorna el `UserDto` creado
-    } catch (error) {
-      console.error('Error al crear el usuario:', error);
-      throw error;
-    }
-  },
-
   updateUserStatus: async (idUser: number, status: boolean) => {
     try {
       const response = await instance.put(`/users/${idUser}/status`, { status });

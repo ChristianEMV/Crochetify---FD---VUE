@@ -85,15 +85,6 @@
         router.push({ name: "fullorders" });
       };
   
-      const fetchOrders = async () => {
-        // Lógica para obtener las órdenes
-        // ...
-      };
-  
-      onMounted(() => {
-        fetchOrders();
-      });
-  
       const fields = [
         { key: "idOrden", label: "ID de Orden" },
         { key: "status", label: "Estado" },
