@@ -12,12 +12,7 @@ import Shipments from "../views/Shipments.vue";
 import Users from "../views/Users.vue";
 import FullCategories from "../views/FullCategories.vue";
 import FullShipments from "@/views/FullShipments.vue";
-<<<<<<< Updated upstream
-import FullUsers from "@/views/FullUsers.vue";
-import FullOrders from "@/views/FullOrders.vue";
-=======
 import FullProductos from "@/views/FullProductos.vue";
->>>>>>> Stashed changes
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", name: "login", component: Login },
@@ -29,8 +24,8 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/stock", name: "stock", component: Stock },
   {path: "/fullcategories", name: "fullcategories", component: FullCategories},
   {path: "/fullshipments", name: "fullshipments", component: FullShipments},
-  {path: "/fullusers", name: "fullusers", component: FullUsers},
-  {path: "/fullorders", name: "fullorders", component: FullOrders},
+  //{path: "/fullusers", name: "fullusers", component: FullUsers},
+  //{path: "/fullorders", name: "fullorders", component: FullOrders},
   //{ path: "/sales", name: "sales", component: Sales },
   { path: "/orders", name: "orders", component: Orders },
   { path: "/shipments", name: "shipments", component: Shipments },
