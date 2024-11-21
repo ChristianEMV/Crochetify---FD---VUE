@@ -2,11 +2,7 @@
     <div>
       <Navbar @toggle-sidebar="toggleSidebar" />
       <Sidebar :isOpen="isSidebarOpen" />
-      <main class="dashboard">
-        <h2>Dashboard</h2>
-        <p>Aquí se mostrarán estadísticas clave del negocio.</p>
-        <!-- Podrías agregar gráficos o tablas con estadísticas aquí -->
-      </main>
+      <Users_component/>
     </div>
   </template>
   
@@ -14,6 +10,7 @@
   import { defineComponent, ref } from "vue";
   import Navbar from "../components/Navbar.vue";
   import Sidebar from "../components/Sidebar.vue";
+
   
   export default defineComponent({
     name: "Home",
@@ -36,4 +33,3 @@
     padding: 2rem;
   }
   </style>
-  
