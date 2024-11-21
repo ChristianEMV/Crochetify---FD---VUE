@@ -207,7 +207,7 @@ export default defineComponent({
           name: cat.name,
           status: cat.status
         })) : [];
-        categories.value = allCategories.slice(-5); // Tomar los últimos 5 elementos
+        categories.value = allCategories.slice(-5);
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];

@@ -51,6 +51,7 @@ export const categoryApi = {
   }
 };
 
+<<<<<<< Updated upstream
 export const userApi = {
   getAllUsers: async () => {
     try {
@@ -59,10 +60,21 @@ export const userApi = {
       return response.data; // Retorna una lista de `UserDto`
     } catch (error) {
       console.error('Error al obtener los usuarios:', error);
+=======
+export const productApi = {
+  createProduct: async (productCreateRequest: {name: string; description: string; categoryIds: number[] }) => {
+    try {
+      const response = await instance.post('/products', productCreateRequest);
+      console.log('Producto creado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el producto:', error);
+>>>>>>> Stashed changes
       throw error;
     }
   },
 
+<<<<<<< Updated upstream
   updateUserStatus: async (idUser: number, status: boolean) => {
     try {
       const response = await instance.put(`/users/${idUser}/status`, { status });
@@ -70,10 +82,20 @@ export const userApi = {
       return response.data; // Retorna el `UserDto` con el estado actualizado
     } catch (error) {
       console.error('Error al actualizar el estado del usuario:', error);
+=======
+  updateProduct: async (idProduct: number, productCreateRequest: { name: string; description: string; categoryIds: number[] }) => {
+    try {
+      const response = await instance.put(`/products/${idProduct}`, productCreateRequest);
+      console.log('Producto actualizado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar el producto:', error);
+>>>>>>> Stashed changes
       throw error;
     }
   },
 
+<<<<<<< Updated upstream
   getUserById: async (idUser: number) => {
     try {
       const response = await instance.get(`/users/${idUser}`);
@@ -81,6 +103,26 @@ export const userApi = {
       return response.data; // Retorna un único `UserDto`
     } catch (error) {
       console.error('Error al obtener el usuario:', error);
+=======
+  getProductById: async (idProduct: number) => {
+    try {
+      const response = await instance.get(`/products/${idProduct}`);
+      console.log('Producto obtenido:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener el producto:', error);
+      throw error;
+    }
+  },
+
+  getProducts: async () => {
+    try {
+      const response = await instance.get('/products');
+      console.log('Productos obtenidos:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener los productos:', error);
+>>>>>>> Stashed changes
       throw error;
     }
   }

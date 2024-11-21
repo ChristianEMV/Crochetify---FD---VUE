@@ -1,205 +1,343 @@
 <template>
-    <div>
-      <Navbar @toggle-sidebar="toggleSidebar" />
-      <Sidebar :isOpen="isSidebarOpen" />
-      <div class="dashboard d-flex justify-content-center">
-        <b-card class="shadow-lg rounded modern-card w-100">
-          <div class="d-flex justify-content-between mb-3">
-            <h3 class="text-center mb-4">Productos</h3>
-  
-            <b-form-group label="Filtrar por rango de fechas:" class="filter-label d-flex align-items-center">
-              <input type="date" v-model="startDate" @change="filterByDateRange" placeholder="Fecha inicio" class="me-2" />
-              <input type="date" v-model="endDate" @change="filterByDateRange" placeholder="Fecha fin" />
-            </b-form-group>
-  
-            <b-form-select v-model="itemsPerPage" :options="pageOptions" class="w-auto" />
-          </div>
-  
-  
-          <b-table
-            :items="filteredItems"
-            :fields="fields"
-            :per-page="itemsPerPage"
-            :current-page="currentPage"
-            @sort-changed="sortChanged"
-            bordered
-            hover
-            responsive
-            class="modern-table"
-          >
-            <template #cell(actions)="data">
-              <b-button size="sm" variant="outline-primary" @click="editItem(data.item)" class="me-2">
-                <i class="fa fa-edit"></i>
-              </b-button>
-              <b-button size="sm" variant="outline-danger" @click="deleteItem(data.item)">
-                <i class="fa fa-trash"></i>
-              </b-button>
-            </template>
-          </b-table>
-  
-          <b-pagination
-            v-model="currentPage"
-            :total-rows="filteredItems.length"
-            :per-page="itemsPerPage"
-            class="mt-3 justify-content-center"
-          />
-        </b-card>
+  <div>
+    <Navbar @toggle-sidebar="toggleSidebar" />
+    <Sidebar :isOpen="isSidebarOpen" />
+    <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
+      <div class="header-wrapper">
+        <h3><i class="fas fa-box"></i> Todos los Productos</h3>
+        <h6>Gestión de todos los productos</h6>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><router-link to="/products">Resumen Productos</router-link></li>
+            <li class="breadcrumb-item active" aria-current="page">Productos</li>
+          </ol>
+        </nav>
       </div>
     </div>
-  </template>
-  
-  <script lang="ts">
-  import { defineComponent, ref, computed } from 'vue';
-  import Navbar from "../components/Navbar.vue";
-  import Sidebar from "../components/Sidebar.vue";
-  
-  export default defineComponent({
-    name: "FullCategories",
-    components: { Navbar, Sidebar },
-    setup() {
-      const isSidebarOpen = ref(false);
-      const toggleSidebar = () => {
-        isSidebarOpen.value = !isSidebarOpen.value;
-      };
-  
-      const items = ref([
-    { id: 1, categoryName: 'Categoría 1', products: 10, stock: 100, avgPrice: 20, totalSales: 15, revenue: 300, state: 'Activo', lastUpdate: '2024-11-01' },
-    { id: 2, categoryName: 'Categoría 2', products: 8, stock: 50, avgPrice: 15, totalSales: 20, revenue: 300, state: 'Inactivo', lastUpdate: '2024-11-02' },
-    { id: 3, categoryName: 'Categoría 3', products: 12, stock: 150, avgPrice: 25, totalSales: 10, revenue: 250, state: 'Activo', lastUpdate: '2024-10-30' },
-    { id: 4, categoryName: 'Categoría 4', products: 5, stock: 20, avgPrice: 10, totalSales: 5, revenue: 50, state: 'Inactivo', lastUpdate: '2024-11-05' },
-    { id: 5, categoryName: 'Categoría 5', products: 20, stock: 200, avgPrice: 30, totalSales: 25, revenue: 750, state: 'Activo', lastUpdate: '2024-11-03' },
-    { id: 6, categoryName: 'Categoría 6', products: 7, stock: 35, avgPrice: 18, totalSales: 12, revenue: 216, state: 'Activo', lastUpdate: '2024-10-29' },
-    { id: 7, categoryName: 'Categoría 7', products: 15, stock: 80, avgPrice: 22, totalSales: 18, revenue: 396, state: 'Activo', lastUpdate: '2024-11-07' },
-    { id: 8, categoryName: 'Categoría 8', products: 9, stock: 60, avgPrice: 19, totalSales: 14, revenue: 266, state: 'Inactivo', lastUpdate: '2024-11-04' },
-    { id: 9, categoryName: 'Categoría 9', products: 6, stock: 40, avgPrice: 12, totalSales: 9, revenue: 108, state: 'Activo', lastUpdate: '2024-11-06' },
-    { id: 10, categoryName: 'Categoría 10', products: 18, stock: 130, avgPrice: 28, totalSales: 20, revenue: 560, state: 'Activo', lastUpdate: '2024-11-08' },
-    // Registros adicionales
-    { id: 11, categoryName: 'Categoría 11', products: 8, stock: 45, avgPrice: 14, totalSales: 10, revenue: 140, state: 'Activo', lastUpdate: '2024-11-02' },
-    { id: 12, categoryName: 'Categoría 12', products: 14, stock: 90, avgPrice: 21, totalSales: 17, revenue: 357, state: 'Inactivo', lastUpdate: '2024-11-01' },
-    { id: 13, categoryName: 'Categoría 13', products: 4, stock: 15, avgPrice: 8, totalSales: 5, revenue: 40, state: 'Activo', lastUpdate: '2024-11-04' },
-    { id: 14, categoryName: 'Categoría 14', products: 22, stock: 110, avgPrice: 35, totalSales: 30, revenue: 1050, state: 'Activo', lastUpdate: '2024-10-28' },
-    { id: 15, categoryName: 'Categoría 15', products: 11, stock: 70, avgPrice: 16, totalSales: 13, revenue: 208, state: 'Activo', lastUpdate: '2024-11-09' },
-    { id: 16, categoryName: 'Categoría 16', products: 5, stock: 25, avgPrice: 11, totalSales: 7, revenue: 77, state: 'Inactivo', lastUpdate: '2024-11-06' },
-    { id: 17, categoryName: 'Categoría 17', products: 17, stock: 95, avgPrice: 24, totalSales: 22, revenue: 528, state: 'Activo', lastUpdate: '2024-11-05' },
-    { id: 18, categoryName: 'Categoría 18', products: 20, stock: 150, avgPrice: 29, totalSales: 27, revenue: 783, state: 'Activo', lastUpdate: '2024-10-31' },
-    { id: 19, categoryName: 'Categoría 19', products: 9, stock: 55, avgPrice: 18, totalSales: 15, revenue: 270, state: 'Inactivo', lastUpdate: '2024-11-03' },
-    { id: 20, categoryName: 'Categoría 20', products: 13, stock: 85, avgPrice: 20, totalSales: 16, revenue: 320, state: 'Activo', lastUpdate: '2024-11-04' },
-    { id: 21, categoryName: 'Categoría 21', products: 6, stock: 30, avgPrice: 12, totalSales: 8, revenue: 96, state: 'Activo', lastUpdate: '2024-10-30' },
-    { id: 22, categoryName: 'Categoría 22', products: 16, stock: 100, avgPrice: 26, totalSales: 19, revenue: 494, state: 'Activo', lastUpdate: '2024-11-08' },
-    { id: 23, categoryName: 'Categoría 23', products: 3, stock: 10, avgPrice: 7, totalSales: 4, revenue: 28, state: 'Inactivo', lastUpdate: '2024-11-05' },
-    { id: 24, categoryName: 'Categoría 24', products: 19, stock: 120, avgPrice: 33, totalSales: 24, revenue: 792, state: 'Activo', lastUpdate: '2024-11-03' },
-    { id: 25, categoryName: 'Categoría 25', products: 7, stock: 40, avgPrice: 15, totalSales: 11, revenue: 165, state: 'Activo', lastUpdate: '2024-11-06' },
-    { id: 26, categoryName: 'Categoría 26', products: 10, stock: 65, avgPrice: 19, totalSales: 14, revenue: 266, state: 'Inactivo', lastUpdate: '2024-11-02' },
-    { id: 27, categoryName: 'Categoría 27', products: 18, stock: 130, avgPrice: 27, totalSales: 20, revenue: 540, state: 'Activo', lastUpdate: '2024-11-01' },
-    { id: 28, categoryName: 'Categoría 28', products: 11, stock: 60, avgPrice: 17, totalSales: 9, revenue: 153, state: 'Activo', lastUpdate: '2024-11-08' },
-    { id: 29, categoryName: 'Categoría 29', products: 14, stock: 95, avgPrice: 23, totalSales: 21, revenue: 483, state: 'Activo', lastUpdate: '2024-11-07' },
-    { id: 30, categoryName: 'Categoría 30', products: 4, stock: 15, avgPrice: 9, totalSales: 6, revenue: 54, state: 'Inactivo', lastUpdate: '2024-11-05' },
-    { id: 31, categoryName: 'Categoría 31', products: 12, stock: 75, avgPrice: 20, totalSales: 14, revenue: 280, state: 'Activo', lastUpdate: '2024-10-29' },
-    { id: 32, categoryName: 'Categoría 32', products: 22, stock: 150, avgPrice: 32, totalSales: 26, revenue: 832, state: 'Activo', lastUpdate: '2024-11-06' },
-    { id: 33, categoryName: 'Categoría 33', products: 8, stock: 45, avgPrice: 14, totalSales: 10, revenue: 140, state: 'Inactivo', lastUpdate: '2024-11-03' },
-    { id: 34, categoryName: 'Categoría 34', products: 5, stock: 20, avgPrice: 11, totalSales: 7, revenue: 77, state: 'Activo', lastUpdate: '2024-11-01' },
-    { id: 35, categoryName: 'Categoría 35', products: 17, stock: 100, avgPrice: 24, totalSales: 22, revenue: 528, state: 'Activo', lastUpdate: '2024-11-04' },
-    { id: 36, categoryName: 'Categoría 36', products: 20, stock: 160, avgPrice: 29, totalSales: 28, revenue: 812, state: 'Activo', lastUpdate: '2024-11-02' },
-    { id: 37, categoryName: 'Categoría 37', products: 9, stock: 50, avgPrice: 18, totalSales: 12, revenue: 216, state: 'Inactivo', lastUpdate: '2024-10-31' },
-    { id: 38, categoryName: 'Categoría 38', products: 13, stock: 85, avgPrice: 21, totalSales: 17, revenue: 357, state: 'Activo', lastUpdate: '2024-10-30' },
-    { id: 39, categoryName: 'Categoría 39', products: 7, stock: 35, avgPrice: 16, totalSales: 11, revenue: 176, state: 'Activo', lastUpdate: '2024-11-09' },
-    { id: 40, categoryName: 'Categoría 40', products: 15, stock: 80, avgPrice: 22, totalSales: 18, revenue: 396, state: 'Activo', lastUpdate: '2024-11-08' }
-  ]);
-  
-  
-      const fields = ref([
-        { key: "id", label: "ID" },
-        { key: "categoryName", label: "Nombre de Categoría" },
-        { key: "products", label: "Productos" },
-        { key: "stock", label: "Stock Total" },
-        { key: "avgPrice", label: "Precio promedio" },
-        { key: "totalSales", label: "Ventas Totales" },
-        { key: "revenue", label: "Ingresos generados" },
-        { key: "state", label: "State" },
-        { key: "lastUpdate", label: "Última Actualización" },
-        { key: "actions", label: "Acciones" }
-      ]);
-  
-      const currentPage = ref(1);
-      const itemsPerPage = ref(10);
-      const pageOptions = ref([10, 20, 30]);
-  
-      const startDate = ref<string | null>(null);
-      const endDate = ref<string | null>(null);
-  
-      const filteredItems = computed(() => {
-        if (startDate.value && endDate.value) {
-          return items.value.filter(item => {
-            return startDate.value && endDate.value && item.lastUpdate >= startDate.value && item.lastUpdate <= endDate.value;
-          });
-        }
-        return items.value;
-      });
-  
-      const filterByDateRange = () => {
-        currentPage.value = 1;
-      };
-  
-      const sortChanged = (ctx: { sortBy: string; sortDesc: boolean }) => {
-        console.log(`Orden cambiado: ${ctx.sortBy} en orden ${ctx.sortDesc ? 'descendente' : 'ascendente'}`);
-      };
-  
-      const editItem = (item: { id: number; categoryName: string; products: number; stock: number; avgPrice: number; totalSales: number; revenue: number; state: string; lastUpdate: string }) => {
-        console.log('Editar:', item);
-      };
-  
-      const deleteItem = (item: { id: number; categoryName: string; products: number; stock: number; avgPrice: number; totalSales: number; revenue: number; state: string; lastUpdate: string }) => {
-        console.log('Eliminar:', item);
-      };
-  
-      return {
-        isSidebarOpen,
-        toggleSidebar,
-        items,
-        fields,
-        currentPage,
-        itemsPerPage,
-        pageOptions,
-        startDate,
-        endDate,
-        filteredItems,
-        filterByDateRange,
-        sortChanged,
-        editItem,
-        deleteItem,
-      };
-    },
-  });
-  </script>
-  
-  <style scoped>
-  .modern-card {
-    border-radius: 15px;
-  }
-  
-  .modern-table th, .modern-table td {
-    text-align: center;
-  }
-  
-  .filter-label {
-    font-weight: bold;
-  }
-  
-  input[type="date"] {
-    width: 150px;
-    padding: 0.375rem 0.75rem;
-    margin-right: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-  }
-  
-  h3 {
-    font-size: 1.75rem;
-    color: #333;
-  }
-  
-  button {
-    margin-right: 10px;
-  }
-  </style>
-  
+
+    <transition name="fade">
+      <b-alert v-if="alert.show" :variant="alert.type" dismissible @dismissed="alert.show = false" class="alert-bottom-left">
+        {{ alert.message }}
+      </b-alert>
+    </transition>
+
+    <div class="table-container">
+      <b-table :items="products" :fields="fields" responsive striped hover small>
+        <template #cell(idProduct)="row">
+          <span>{{ row.item.idProduct }}</span>
+        </template>
+        <template #cell(name)="row">
+          <span>{{ row.item.name }}</span>
+        </template>
+        <template #cell(description)="row">
+          <span>{{ row.item.description }}</span>
+        </template>
+        <template #cell(categories)="row">
+          <span>{{ row.item.categories.map(category => category.name).join(', ') }}</span>
+        </template>
+        <template #cell(actions)="row">
+          <div class="d-flex justify-content-between">
+            <b-button
+              variant="warning"
+              size="sm"
+              class="mr-2"
+              @click="openEditForm(row.item)"
+            >
+              <i class="fas fa-edit"></i>
+              Editar Producto
+            </b-button>
+          </div>
+        </template>
+      </b-table>
+    </div>
+
+    <transition name="fade">
+      <div v-if="showEditForm" class="mb-4 form-container">
+        <b-form @submit.prevent="updateProduct">
+          <b-form-group label="ID del Producto:">
+            <p>{{ editProductData.id }}</p>
+          </b-form-group>
+          <b-form-group label="Nombre del Producto">
+            <b-form-input
+              v-model="editProductData.name"
+              required
+              placeholder="Introduce el nombre del producto"
+            ></b-form-input>
+          </b-form-group>
+          <b-form-group label="Descripción del Producto">
+            <b-form-input
+              v-model="editProductData.description"
+              required
+              placeholder="Introduce la descripción del producto"
+            ></b-form-input>
+          </b-form-group>
+          <b-form-group label="Categorías">
+            <b-form-checkbox-group
+              v-model="editProductData.categoryIds"
+              :options="categories"
+              name="categories"
+              stacked
+            ></b-form-checkbox-group>
+          </b-form-group>
+          <br>
+          <div class="button-group">
+            <b-button variant="danger" @click="toggleEditForm">Cancelar</b-button>
+            <b-button variant="success" type="submit">Guardar Cambios</b-button>
+          </div>
+        </b-form>
+      </div>
+    </transition>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, reactive, onMounted } from "vue";
+import Navbar from "../components/Navbar.vue";
+import Sidebar from "../components/Sidebar.vue";
+import { productApi, categoryApi } from "../http-common";
+
+export default defineComponent({
+  name: "fullproducts",
+  components: { Navbar, Sidebar },
+  setup() {
+    const isSidebarOpen = ref(false);
+    const showEditForm = ref(false);
+    const isLoading = ref(true);
+    const alert = reactive({ show: false, message: "", type: "success" });
+    const editProductData = reactive({ id: 0, name: "", description: "", categoryIds: [] as number[] });
+    const products = ref([]);
+    const categories = ref([]);
+    
+    const toggleSidebar = () => {
+      isSidebarOpen.value = !isSidebarOpen.value;
+    };
+
+    const fetchProducts = async () => {
+      try {
+        isLoading.value = true;
+        const data = await productApi.getProducts();
+        const allProducts = Array.isArray(data.response.products) ? data.response.products.map((prod: { idProduct: any; name: any; description: any; categories: any; }) => ({
+          idProduct: prod.idProduct,
+          name: prod.name,
+          description: prod.description,
+          categories: prod.categories
+        })) : [];
+        products.value = allProducts;
+      } catch (error) {
+        console.error("Error al cargar los productos:", error);
+        products.value = [];
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getAllCategories();
+        categories.value = data.response.categories.map((cat: { idCategory: any; name: any; }) => ({
+          value: cat.idCategory,
+          text: cat.name
+        }));
+      } catch (error) {
+        console.error("Error al cargar las categorías:", error);
+        categories.value = [];
+      }
+    };
+
+    const openEditForm = (product: any) => {
+      if (!product.idProduct) {
+        console.error("ID del producto no encontrado", product);
+        return;
+      }
+      editProductData.id = product.idProduct;
+      editProductData.name = product.name;
+      editProductData.description = product.description;
+      editProductData.categoryIds = product.categories.map((category: any) => category.id);
+      showEditForm.value = true;
+    };
+
+    const toggleEditForm = () => {
+      showEditForm.value = !showEditForm.value;
+      editProductData.id = 0;
+      editProductData.name = "";
+      editProductData.description = "";
+      editProductData.categoryIds = [];
+    };
+
+    const updateProduct = async () => {
+      try {
+        await productApi.updateProduct(editProductData.id, editProductData);
+        await fetchProducts();
+        alert.message = "Producto actualizado con éxito";
+        alert.type = "success";
+        alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+        showEditForm.value = false;
+      } catch (error) {
+        alert.message = "Error al actualizar el producto";
+        alert.type = "danger";
+        alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+        console.error("Error al actualizar el producto:", error);
+      }
+    };
+
+    onMounted(() => {
+      fetchProducts();
+      fetchCategories();
+    });
+
+    const fields = [
+      { key: "idProduct", label: "ID" },
+      { key: "name", label: "Nombre del Producto" },
+      { key: "description", label: "Descripción" },
+      { key: "categories", label: "Categorías" },
+      { key: "actions", label: "Acciones" }
+    ];
+
+    return {
+      isSidebarOpen,
+      toggleSidebar,
+      products,
+      fields,
+      showEditForm,
+      editProductData,
+      alert,
+      openEditForm,
+      toggleEditForm,
+      updateProduct,
+      isLoading,
+      fetchCategories,
+      categories,
+    };
+  },
+});
+</script>
+
+<style scoped>
+.header {
+  width: 100%;
+  height: 25vh;
+  background: linear-gradient(135deg, #30596b, #5eaed1);
+  color: white;
+  padding: 20px;
+  transition: margin-left 0.3s;
+}
+
+.header-collapsed {
+  margin-left: 250px;
+}
+
+.header-wrapper {
+  padding: 20px;
+}
+
+.breadcrumb {
+  background:  rgba(0, 0, 0, 0.5);
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: ">";
+  color: white;
+  padding: 0 5px;
+}
+
+.breadcrumb-item a {
+  color: white;
+  text-decoration: none;
+}
+
+.breadcrumb-item.active {
+  color: white;
+}
+
+.breadcrumb-item a:hover {
+  text-decoration: underline;
+}
+
+.table-container {
+  width: 98%;
+  margin: 20px auto;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.b-table thead th {
+  background-color: #f1f1f1;
+  color: #333;
+  font-weight: bold;
+  padding: 10px;
+}
+
+.b-table tbody td {
+  padding: 10px;
+}
+
+.b-table tbody tr:hover {
+  background-color: #f7f7f7;
+}
+
+.b-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 5px;
+}
+
+.d-flex {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.custom-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: #007bff;
+}
+
+.form-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.alert-bottom-left {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1050;
+}
+</style>

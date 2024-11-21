@@ -6,6 +6,12 @@
       <div class="header-wrapper">
         <h3><i class="fas fa-layer-group"></i> Todas las Categorías</h3>
         <h6>Gestión de todas las categorías</h6>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><router-link to="/categories">Resumen Categorias</router-link></li>
+            <li class="breadcrumb-item active" aria-current="page">Categorías</li>
+          </ol>
+        </nav>
       </div>
     </div>
 
@@ -198,7 +204,7 @@ export default defineComponent({
           name: cat.name,
           status: cat.status
         })) : [];
-        categories.value = allCategories; // Tomar todos los elementos
+        categories.value = allCategories;
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];
@@ -240,7 +246,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Reutiliza los estilos de Categories.vue */
 .header {
   width: 100%;
   height: 25vh;
@@ -256,6 +261,31 @@ export default defineComponent({
 
 .header-wrapper {
   padding: 20px;
+}
+
+.breadcrumb {
+  background:  rgba(0, 0, 0, 0.5);
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: ">";
+  color: white;
+  padding: 0 5px;
+}
+
+.breadcrumb-item a {
+  color: white;
+  text-decoration: none;
+}
+
+.breadcrumb-item.active {
+  color: white;
+}
+
+.breadcrumb-item a:hover {
+  text-decoration: underline;
 }
 
 .table-container {
