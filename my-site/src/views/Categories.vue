@@ -90,10 +90,6 @@
           </div>
         </template>
       </b-table>
-
-      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullCategoriesPage">
-        Ver más
-      </b-button>
     </div>
   </div>
 </template>
@@ -207,7 +203,7 @@ export default defineComponent({
           name: cat.name,
           status: cat.status
         })) : [];
-        categories.value = allCategories.slice(-5);
+        categories.value = allCategories;
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];

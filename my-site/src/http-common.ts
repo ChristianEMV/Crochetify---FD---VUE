@@ -97,5 +97,50 @@ export const productApi = {
   }
 };
 
+export const stockApi = {
+  createStock: async (stockData: { productId: number; color: string; price: number; quantity: number; images?: string[] }) => {
+    try {
+      const response = await instance.post('/stock', stockData);
+      console.log('Stock creado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el stock:', error);
+      throw error;
+    }
+  },
+
+  getStocks: async () => {
+    try {
+      const response = await instance.get('/stock');
+      console.log('Stocks obtenidos:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener los stocks:', error);
+      throw error;
+    }
+  },
+
+  getStockById: async (idStock: number) => {
+    try {
+      const response = await instance.get(`/stock/${idStock}`);
+      console.log('Stock obtenido:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener el stock:', error);
+      throw error;
+    }
+  },
+
+  updateStock: async (idStock: number, stockData: { color?: string; price?: number; quantity?: number; status?: boolean; images?: string[] }) => {
+    try {
+      const response = await instance.put(`/stock/${idStock}`, stockData);
+      console.log('Stock actualizado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar el stock:', error);
+      throw error;
+    }
+  }
+};
 
 export default instance;

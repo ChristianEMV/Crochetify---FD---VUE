@@ -126,10 +126,6 @@
           </div>
         </template>
       </b-table>
-
-      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullProductsPage">
-        Ver más
-      </b-button>
     </div>
   </div>
 </template>
@@ -253,7 +249,7 @@ export default defineComponent({
           description: prod.description,
           categories: prod.categories
         })) : [];
-        products.value = allProducts.slice(-5);
+        products.value = allProducts;
       } catch (error) {
         console.error("Error al cargar los productos:", error);
         products.value = [];

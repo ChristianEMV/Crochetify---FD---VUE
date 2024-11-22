@@ -10,9 +10,7 @@ import Orders from "../views/Orders.vue";
 import Shipments from "../views/Shipments.vue";
 //import Error from "../views/Error.vue";
 import Users from "../views/Users.vue";
-import FullCategories from "../views/FullCategories.vue";
 import FullShipments from "@/views/FullShipments.vue";
-import FullProductos from "@/views/FullProductos.vue";
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", name: "login", component: Login },
@@ -20,9 +18,7 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/users", name:"users", component: Users},
   { path: "/categories", name: "categories", component: Categories },
   { path: "/products", name: "products", component: Products },
-  {path: "/fullproductos", name: "fullproductos", component: FullProductos},
   { path: "/stock", name: "stock", component: Stock },
-  {path: "/fullcategories", name: "fullcategories", component: FullCategories},
   {path: "/fullshipments", name: "fullshipments", component: FullShipments},
   //{path: "/fullusers", name: "fullusers", component: FullUsers},
   //{path: "/fullorders", name: "fullorders", component: FullOrders},
