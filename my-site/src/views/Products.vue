@@ -130,7 +130,7 @@
 
     <b-modal v-model="showProductModal" title="Detalles del Producto" hide-footer>
       <div v-if="selectedProduct">
-        <p><strong>ID:</strong> {{ selectedProduct.id }}</p>
+        <p><strong>ID:</strong> {{ selectedProduct.idProduct }}</p>
         <p><strong>Nombre:</strong> {{ selectedProduct.name }}</p>
         <p><strong>Descripción:</strong> {{ selectedProduct.description }}</p>
         <p><strong>Categorías:</strong> {{ selectedProduct.categories.map(category => category.name).join(', ') }}</p>
@@ -166,7 +166,7 @@ export default defineComponent({
     const categories = ref<Category[]>([]);
     const router = useRouter();
     const showProductModal = ref(false);
-    const selectedProduct = ref<{ id: number; name: string; description: string; categories: Category[] } | null>(null);
+    const selectedProduct = ref<{ idProduct: number; name: string; description: string; categories: Category[] } | null>(null);
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
