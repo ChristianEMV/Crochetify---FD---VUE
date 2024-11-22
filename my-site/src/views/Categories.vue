@@ -71,7 +71,7 @@
           <span>{{ row.item.id }}</span>
         </template>
         <template #cell(name)="row">
-          <span>{{ row.item.name }}</span>
+          <span @click="openCategoryModal(row.item)" class="category-name">{{ row.item.name }}</span>
         </template>
         <template #cell(status)="row">
           <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
@@ -91,6 +91,14 @@
         </template>
       </b-table>
     </div>
+
+    <b-modal v-model="showCategoryModal" title="Detalles de la Categoría" hide-footer>
+      <div v-if="selectedCategory">
+        <p><strong>ID:</strong> {{ selectedCategory.id }}</p>
+        <p><strong>Nombre:</strong> {{ selectedCategory.name }}</p>
+        <p><strong>Estado:</strong> {{ selectedCategory.status ? 'Habilitada' : 'Deshabilitada' }}</p>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -114,6 +122,8 @@ export default defineComponent({
     const editCategoryData = reactive({ id: 0, name: "", status: "Activo" });
     const categories = ref([]);
     const router = useRouter();
+    const showCategoryModal = ref(false);
+    const selectedCategory = ref<{ id: number; name: string; status: boolean } | null>(null);
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
@@ -166,15 +176,18 @@ export default defineComponent({
       editCategoryData.id = category.id;
       editCategoryData.name = category.name;
       editCategoryData.status = category.status;
-      console.log("ID de la categoría:", editCategoryData.id);
       showEditForm.value = true;
+    };
+
+    const openCategoryModal = (category: any) => {
+      selectedCategory.value = category;
+      showCategoryModal.value = true;
     };
 
     const updateCategoryStatus = async () => {
       try {
         const status = editCategoryData.status === 'Activo';
         await categoryApi.updateCategoryStatus(editCategoryData.id, status);
-        console.log("ID de la categoría:", editCategoryData.id);
         await fetchCategories();
         alert.message = "Estado de la categoría actualizado con éxito";
         alert.type = "success";
@@ -212,16 +225,6 @@ export default defineComponent({
       }
     };
 
-    const fetchCategoryById = async (id: number) => {
-      try {
-        const data = await categoryApi.getCategoryById(id);
-        return data.response.category;
-      } catch (error) {
-        console.error("Error al obtener la categoría:", error);
-        return null;
-      }
-    };
-
     onMounted(() => {
       fetchCategories();
     });
@@ -247,10 +250,12 @@ export default defineComponent({
       toggleEditForm,
       createCategory,
       openEditForm,
+      openCategoryModal,
       updateCategoryStatus,
-      goToFullCategoriesPage,
+      fetchCategories,
       isLoading,
-      fetchCategoryById,
+      showCategoryModal,
+      selectedCategory
     };
   },
 });
@@ -367,5 +372,10 @@ export default defineComponent({
   bottom: 20px;
   left: 20px;
   z-index: 1050;
+}
+
+.category-name {
+  cursor: pointer;
+  color: #007bff;
 }
 </style>

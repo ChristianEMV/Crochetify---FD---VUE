@@ -134,7 +134,7 @@
           <span>{{ row.item.idStock }}</span>
         </template>
         <template #cell(product)="row">
-          <span>{{ row.item.product.name }}</span>
+          <span @click="openStockModal(row.item)" class="stock-name">{{ row.item.product.name }}</span>
         </template>
         <template #cell(color)="row">
           <span :style="{ backgroundColor: row.item.color }" class="color-box"></span>
@@ -160,10 +160,24 @@
         </template>
       </b-table>
     </div>
+
+    <b-modal v-model="showStockModal" title="Detalles del Stock" hide-footer>
+      <div v-if="selectedStock">
+        <p><strong>ID:</strong> {{ selectedStock.idStock }}</p>
+        <p><strong>Producto:</strong> {{ selectedStock.product.name }}</p>
+        <p><strong>Color:</strong> <span :style="{ backgroundColor: selectedStock.color }" class="color-box"></span></p>
+        <p><strong>Precio:</strong> {{ selectedStock.price }}</p>
+        <p><strong>Cantidad:</strong> {{ selectedStock.quantity }}</p>
+        <p><strong>Imágenes:</strong></p>
+        <div v-if="selectedStock.images && selectedStock.images.length">
+          <img v-for="(image, index) in selectedStock.images" :key="index" :src="image" class="stock-image" />
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
-<<script lang="ts">
+<script lang="ts">
 import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
@@ -184,6 +198,8 @@ export default defineComponent({
     const stocks = ref([]);
     const products = ref([]);
     const router = useRouter();
+    const showStockModal = ref(false);
+    const selectedStock = ref<{ idStock: number; product: { name: string }; color: string; price: number; quantity: number; images: string[] } | null>(null);
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
@@ -288,6 +304,11 @@ export default defineComponent({
       showEditForm.value = true;
     };
 
+    const openStockModal = (stock: any) => {
+      selectedStock.value = stock;
+      showStockModal.value = true;
+    };
+
     const handleImageUpload = (event: Event) => {
       const files = (event.target as HTMLInputElement).files;
       if (files) {
@@ -369,12 +390,15 @@ export default defineComponent({
       createStock,
       updateStock,
       openEditForm,
+      openStockModal,
       handleImageUpload,
       handleEditImageUpload,
       handleDrop,
       handleEditDrop,
       isLoading,
-      products
+      products,
+      showStockModal,
+      selectedStock
     };
   },
 });
@@ -498,5 +522,17 @@ export default defineComponent({
   width: 20px;
   height: 20px;
   border-radius: 50%;
+}
+
+.stock-name {
+  cursor: pointer;
+  color: #007bff;
+}
+
+.stock-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 10px;
 }
 </style>
