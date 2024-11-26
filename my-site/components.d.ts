@@ -20,7 +20,6 @@ declare module 'vue' {
     BFormInput: typeof import('bootstrap-vue-next/components/BFormInput')['BFormInput']
     BFormSelect: typeof import('bootstrap-vue-next/components/BFormSelect')['BFormSelect']
     BImg: typeof import('bootstrap-vue-next/components/BImg')['BImg']
-    BInputGroup: typeof import('bootstrap-vue-next/components/BInputGroup')['BInputGroup']
     BModal: typeof import('bootstrap-vue-next/components/BModal')['BModal']
     BPagination: typeof import('bootstrap-vue-next/components/BPagination')['BPagination']
     BRow: typeof import('bootstrap-vue-next/components/BContainer')['BRow']

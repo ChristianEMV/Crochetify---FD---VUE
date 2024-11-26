@@ -92,7 +92,7 @@ export default defineComponent({
   }
 };
 
-    //validar fechas
+  //validar fechas
     onMounted(fetchShipments);
 
     const fields = [
