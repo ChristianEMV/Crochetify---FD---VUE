@@ -9,7 +9,7 @@
         <h6>Sales overview & summary</h6>
       </div>
     </div>
-    
+
     <div class="row mt-4">
       <div class="col-sm-3" v-for="card in cards" :key="card.id">
         <div class="card custom-card">
@@ -34,59 +34,85 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
+import { userApi } from "@/http-common";
 
 export default defineComponent({
   name: "Dashboard",
   components: { Navbar, Sidebar, Grafic },
   setup() {
     const isSidebarOpen = ref(false);
-    const router = useRouter();
+    const totalUsers = ref(0);
+    const users = ref([]);
+    const isLoading = ref(true);
 
     const cards = ref([
       {
         id: "active-users",
-        value: "259",
+        value: "0", // Se inicializa en 0 y se actualizará dinámicamente
         title: "Usuarios Totales",
         description: "Usuarios totales registrados durante el mes",
-        iconClass: "fas fa-users icon-circle-users"
+        iconClass: "fas fa-users icon-circle-users",
       },
       {
         id: "total-selling",
         value: "843",
         title: "Ventas Totales",
         description: "Ventas totales realizadas durante el mes",
-        iconClass: "fas fa-shopping-cart icon-circle-sells"
+        iconClass: "fas fa-shopping-cart icon-circle-sells",
       },
       {
         id: "pending-orders",
         value: "196",
         title: "Pedidos en Curso",
         description: "Pedidos pendientes de envío",
-        iconClass: "fas fa-box-open icon-circle-orders"
+        iconClass: "fas fa-box-open icon-circle-orders",
       },
       {
         id: "total-earnings",
         value: "$59,482",
         title: "Ganancias Totales",
         description: "Total de ganancias obtenidas en el mes",
-        iconClass: "fas fa-dollar-sign icon-circle-earnings"
-      }
+        iconClass: "fas fa-dollar-sign icon-circle-earnings",
+      },
     ]);
+
+    const fetchUsers = async () => {
+      try {
+        const data = await userApi.getAllUsers();
+        console.log("Datos recibidos:", data);
+        users.value = Array.isArray(data.response.users) ? data.response.users : [];
+        totalUsers.value = users.value.length; 
+        cards.value[0].value = totalUsers.value.toString(); 
+      } catch (error) {
+        console.error("Error al cargar los usuarios:", error);
+      } finally {
+        isLoading.value = false;
+      }
+    };
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
+    onMounted(() => {
+      fetchUsers();
+    });
 
-    return { isSidebarOpen, cards, toggleSidebar };
-  }
+    return {
+      isSidebarOpen,
+      cards,
+      toggleSidebar,
+      isLoading,
+    };
+  },
 });
 </script>
+
 
 <style scoped>
 .header {

@@ -9,95 +9,51 @@
       </div>
     </div>
 
-    <b-alert v-if="alert.show" :variant="alert.type" dismissible>
-      {{ alert.message }}
-    </b-alert>
+    <transition name="fade">
+      <b-alert 
+        v-if="alert.show" 
+        :variant="alert.type" 
+        dismissible 
+        @dismissed="alert.show = false" 
+        class="alert-bottom-left"
+      >
+        {{ alert.message }}
+      </b-alert>
+    </transition>
 
     <div class="table-container">
       <h3 class="mb-4">Resumen de Envíos</h3>
-      <b-table
-        :items="shipments"
-        :fields="fields"
-        responsive
-        striped
-        hover
+
+      <div v-if="isLoading" class="spinner-container">
+        <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
+      </div>
+
+      <!-- Tabla de envíos -->
+      <b-table 
+        v-else 
+        :items="shipments" 
+        :fields="fields" 
+        responsive 
+        striped 
+        hover 
         small
       >
         <template #cell(idShipment)="row">
-          <b-button
-            variant="link"
-            class="text-primary"
-            @click="showShipmentModal(row.item)"
-          >
-            {{ row.item.idShipment }}
-          </b-button>
+          <span>{{ row.item.idShipment }}</span>
         </template>
-        <template #cell(actions)="row">
-          <div class="d-flex justify-content-between">
-            <b-button
-              variant="warning"
-              size="sm"
-              class="mr-2"
-              @click="openEditModal(row.item)"
-            >
-              <i class="fas fa-edit"></i>
-            </b-button>
-            <b-button
-              variant="danger"
-              size="sm"
-              @click="deleteShipment(row.item.idShipment)"
-            >
-              <i class="fas fa-trash"></i>
-            </b-button>
-          </div>
+        <template #cell(status)="row">
+          <span>
+            {{ row.item.status === 1 ? 'Enviado' : row.item.status === 2 ? 'Entregado' : 'Pendiente' }}
+          </span>
+        </template>
+        <template #cell(shipping_day)="row">
+          <span>{{ row.item.shipping_day || 'No asignada' }}</span>
+        </template>
+        <template #cell(delivery_day)="row">
+          <span>{{ row.item.delivery_day || 'No asignada' }}</span>
         </template>
       </b-table>
-
-      <b-button
-        variant="outline-primary"
-        class="btn-view-more mt-4"
-        @click="goToFullShipmentsPage"
-      >
-        Ver más
-      </b-button>
     </div>
-
-    <!-- Modal para ver detalles del envío -->
-    <b-modal v-model="showModal" title="Información del Envío">
-      <div>
-        <p><strong>ID de Envío:</strong> {{ selectedShipment.idShipment }}</p>
-        <p><strong>Estado:</strong> {{ selectedShipment.status ? 'Activo' : 'Inactivo' }}</p>
-        <p><strong>Fecha de Envío:</strong> {{ selectedShipment.shipping_day }}</p>
-        <p><strong>Fecha de Entrega:</strong> {{ selectedShipment.delivery_day }}</p>
-      </div>
-    </b-modal>
-
-    <!-- Modal para editar un envío -->
-    <b-modal v-model="showEditModal" title="Editar Envío">
-      <div>
-        <b-form>
-          <b-form-group label="ID de Envío">
-            <b-form-input v-model="editShipmentData.idShipment" readonly></b-form-input>
-          </b-form-group>
-          <b-form-group label="Estado">
-            <b-form-select
-              v-model="editShipmentData.status"
-              :options="[true, false]"
-            ></b-form-select>
-          </b-form-group>
-          <b-form-group label="Fecha de Envío">
-            <b-form-input type="date" v-model="editShipmentData.shipping_day"></b-form-input>
-          </b-form-group>
-          <b-form-group label="Fecha de Entrega">
-            <b-form-input type="date" v-model="editShipmentData.delivery_day"></b-form-input>
-          </b-form-group>
-        </b-form>
-      </div>
-      <template #modal-footer>
-        <b-button variant="success" @click="updateShipment">Guardar Cambios</b-button>
-        <b-button variant="danger" @click="showEditModal = false">Cancelar</b-button>
-      </template>
-    </b-modal>
   </div>
 </template>
 
@@ -105,65 +61,45 @@
 import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
-import { useRouter } from "vue-router";
-import { shipmentApi } from "../http-common";
+import { apiShipments } from "../http-common";
 
 export default defineComponent({
-  name: "shipments",
+  name: "Shipments",
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
-    const showModal = ref(false);
-    const showEditModal = ref(false);
+    const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
-    const selectedShipment = reactive({ idShipment: "", status: false, shipping_day: "", delivery_day: "" });
-    const editShipmentData = reactive({ idShipment: "", status: false, shipping_day: "", delivery_day: "" });
     const shipments = ref([]);
-    const router = useRouter();
-
+    
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    const showShipmentModal = (shipment: any) => {
-      Object.assign(selectedShipment, shipment);
-      showModal.value = true;
-    };
-
-    const goToFullShipmentsPage = () => {
-      router.push({ name: "fullshipments" });
-    };
-
-    const openEditModal = (shipment: any) => {
-      Object.assign(editShipmentData, shipment);
-      showEditModal.value = true;
-    };
-
-    const updateShipment = async () => {
-      // Lógica para actualizar un envío
-      // ...
-    };
-
-    const deleteShipment = async (id: string) => {
-      // Lógica para eliminar un envío
-      // ...
-    };
-
     const fetchShipments = async () => {
-      // Lógica para obtener los envíos
-      // ...
-    };
+  try {
+    const data = await apiShipments.getAllShipments();
+    console.log("Datos recibidos:", data);
 
-    onMounted(() => {
-      fetchShipments();
-    });
+    shipments.value = Array.isArray(data.response.shipments) ? data.response.shipments : [];
+  } catch (error) {
+    console.error("Error al cargar los envíos:", error);
+    alert.show = true;
+    alert.message = "Error al cargar los envíos.";
+    alert.type = "danger";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+    //validar fechas
+    onMounted(fetchShipments);
 
     const fields = [
-      { key: "idShipment", label: "ID de Envío" },
-      { key: "status", label: "Estado" },
-      { key: "shipping_day", label: "Fecha de Envío" },
-      { key: "delivery_day", label: "Fecha de Entrega" },
-      { key: "actions", label: "Acciones" }
+      { key: "idShipment", label: "ID", sortable: true },
+      { key: "status", label: "Estado", sortable: true },
+      { key: "shipping_day", label: "Fecha de Envío", sortable: true },
+      { key: "delivery_day", label: "Fecha de Entrega", sortable: true },
     ];
 
     return {
@@ -171,20 +107,13 @@ export default defineComponent({
       toggleSidebar,
       shipments,
       fields,
-      showModal,
-      showEditModal,
-      selectedShipment,
-      editShipmentData,
+      isLoading,
       alert,
-      showShipmentModal,
-      goToFullShipmentsPage,
-      openEditModal,
-      updateShipment,
-      deleteShipment,
     };
   },
 });
 </script>
+
 
 <style scoped>
 .header {

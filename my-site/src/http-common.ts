@@ -142,5 +142,101 @@ export const stockApi = {
     }
   }
 };
+export const userApi = {
+  getAllUsers: async () => {
+    try {
+      const response = await instance.get('/users');
+      console.log('Datos obtenidos de la API:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener los usuarios:', error);
+      throw error;
+    }
+  },
+
+  updateUserStatus: async (id: number, status: boolean) => {
+    try {
+      const response = await instance.put(`/users/${id}/status`, { status });
+      console.log("Estado del usuario actualizado:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar el estado del usuario:', error);
+      throw error;
+    }
+  },
+
+  getUserById: async (id: number) => {
+    try {
+      const response = await instance.get(`/users/${id}`);
+      console.log("Usuario obtenido:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener el usuario:', error);
+      throw error;
+    }
+  }
+};
+
+export const apiShipments = { 
+  getAllShipments: async () => {
+    try {
+      const response = await instance.get('/shipment');
+      console.log('Datos obtenidos de la API:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener los envíos:', error);
+      throw error;
+    }
+  },
+
+  getShipmentById: async (id: number) => {
+    try {
+      const response = await instance.get(`/shipment/${id}`);
+      console.log("Envío obtenido:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener el envío:', error);
+      throw error;
+    }
+  },
+
+  createShipment: async ({ shipping_day, idOrden }: { shipping_day: string; idOrden: number }) => {
+    try {
+      const response = await instance.post('/shipment', { shipping_day, idOrden });
+      console.log('Envío registrado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el envío:', error);
+      throw error;
+    }
+  },
+
+};
+
+export const apiOrden = {
+  getAllOrdenes: async () => {
+    try {
+      const response = await instance.get('/orden');
+      console.log('Órdenes obtenidas:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener las órdenes:', error);
+      throw error;
+    }
+  },
+
+  getOrdenById: async (id: number) => {
+    try {
+      const response = await instance.get(`/orden/${id}`);
+      console.log('Orden obtenida:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener la orden:', error);
+      throw error;
+    }
+  },
+};
+
+
 
 export default instance;
