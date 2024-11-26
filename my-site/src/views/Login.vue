@@ -4,7 +4,7 @@
       <b-row no-gutters>
         <b-col md="6">
           <b-card-body class="p-4">
-            <b-img src="/src/assets/CrochetifyLogo.png" alt="App Icon" fluid class="mb-3 d-block mx-auto logo"></b-img>
+            <b-img :src="require('@/assets/CrochetifyLogo.png')" alt="App Icon" fluid class="mb-3 d-block mx-auto logo"></b-img>
             <h3 class="text-center mb-4">¡Bienvenido de vuelta!</h3>
 
             <b-form @submit.prevent="onSubmit">
@@ -53,7 +53,7 @@
           </b-card-body>
         </b-col>
         <b-col md="6">
-          <b-card-img src="/src/assets/login-illustration.jpeg" alt="Login image" class="rounded-0 login-image"></b-card-img>
+          <b-card-img :src="require('@/assets/login-illustration.jpeg')" alt="Login image" class="rounded-0 login-image"></b-card-img>
         </b-col>
       </b-row>
     </b-card>
