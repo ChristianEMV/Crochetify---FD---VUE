@@ -6,7 +6,7 @@ services:
       context: ./my-site
       dockerfile: Dockerfile
     ports:
-      - "8007:80" # Exponer el puerto 80 de nginx en el puerto 8007 de tu host
+      - "8007:80" # Exponer el puerto 80 de nginx en el puerto 8007 de tu host hola
     volumes:
       - ./my-site/nginx.conf:/etc/nginx/nginx.conf # Ruta corregida
     networks:
