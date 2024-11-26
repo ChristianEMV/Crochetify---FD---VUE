@@ -104,7 +104,7 @@
           <span>{{ row.item.id }}</span>
         </template>
         <template #cell(name)="row">
-          <span>{{ row.item.name }}</span>
+          <span @click="openProductModal(row.item)" class="product-name">{{ row.item.name }}</span>
         </template>
         <template #cell(description)="row">
           <span>{{ row.item.description }}</span>
@@ -127,6 +127,15 @@
         </template>
       </b-table>
     </div>
+
+    <b-modal v-model="showProductModal" title="Detalles del Producto" hide-footer>
+      <div v-if="selectedProduct">
+        <p><strong>ID:</strong> {{ selectedProduct.idProduct }}</p>
+        <p><strong>Nombre:</strong> {{ selectedProduct.name }}</p>
+        <p><strong>Descripción:</strong> {{ selectedProduct.description }}</p>
+        <p><strong>Categorías:</strong> {{ selectedProduct.categories.map(category => category.name).join(', ') }}</p>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -156,6 +165,8 @@ export default defineComponent({
     const products = ref([]);
     const categories = ref<Category[]>([]);
     const router = useRouter();
+    const showProductModal = ref(false);
+    const selectedProduct = ref<{ idProduct: number; name: string; description: string; categories: Category[] } | null>(null);
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
@@ -271,6 +282,11 @@ export default defineComponent({
       }
     };
 
+    const openProductModal = (product: any) => {
+      selectedProduct.value = product;
+      showProductModal.value = true;
+    };
+
     onMounted(() => {
       fetchProducts();
       fetchCategories();
@@ -303,6 +319,9 @@ export default defineComponent({
       isLoading,
       fetchCategories,
       categories,
+      showProductModal,
+      selectedProduct,
+      openProductModal,
     };
   },
 });
@@ -424,5 +443,10 @@ export default defineComponent({
   bottom: 20px;
   left: 20px;
   z-index: 1050;
+}
+
+.product-name {
+  cursor: pointer;
+  color: #007bff;
 }
 </style>
