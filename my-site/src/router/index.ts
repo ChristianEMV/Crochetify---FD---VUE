@@ -6,11 +6,10 @@ import Categories from "../views/Categories.vue";
 import Products from "../views/Products.vue";
 import Stock from "../views/Stock.vue";
 //import Sales from "../views/Sales.vue";
-//import Orders from "../views/Orders.vue";
+import Orders from "../views/Orders.vue";
 import Shipments from "../views/Shipments.vue";
 //import Error from "../views/Error.vue";
 import Users from "../views/Users.vue";
-import FullCategories from "../views/FullCategories.vue";
 import FullShipments from "@/views/FullShipments.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -20,10 +19,11 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/categories", name: "categories", component: Categories },
   { path: "/products", name: "products", component: Products },
   { path: "/stock", name: "stock", component: Stock },
-  {path: "/fullcategories", name: "fullcategories", component: FullCategories},
   {path: "/fullshipments", name: "fullshipments", component: FullShipments},
+  //{path: "/fullusers", name: "fullusers", component: FullUsers},
+  //{path: "/fullorders", name: "fullorders", component: FullOrders},
   //{ path: "/sales", name: "sales", component: Sales },
-  //{ path: "/orders", name: "orders", component: Orders },
+  { path: "/orders", name: "orders", component: Orders },
   { path: "/shipments", name: "shipments", component: Shipments },
   //{ path: '/:pathMatch(.*)*', redirect: '/Error' }, // Para redirigir a login si la ruta no existe
 ];

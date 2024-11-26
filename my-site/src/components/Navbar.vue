@@ -34,7 +34,6 @@
       <button class="notification-button">
         <i class="fas fa-bell"></i>
       </button>
-      <img src="/src/assets/usuario.png" alt="User Avatar" class="user-avatar" />
     </div>
   </nav>
 </template>

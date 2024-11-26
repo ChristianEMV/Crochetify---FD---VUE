@@ -1,0 +1,18 @@
+
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./my-site
+      dockerfile: Dockerfile
+    ports:
+      - "8007:80" # Exponer el puerto 80 de nginx en el puerto 8080 de tu host
+    volumes:
+      - ./my-syte/nginx.conf:/etc/nginx/nginx.conf # Solo si tienes un archivo nginx.conf personalizado
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -4,103 +4,55 @@
     <Sidebar :isOpen="isSidebarOpen" />
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
-        <h3><i class="fas fa-user"></i> Usuarios</h3>
-        <h6>Gestión de usuarios</h6>
+        <h3><i class="fas fa-layer-user"></i> Usuarios</h3>
+        <h6>Gestión de los usuarios</h6>
       </div>
     </div>
 
-    <b-alert v-if="alert.show" :variant="alert.type" dismissible>
-      {{ alert.message }}
-    </b-alert>
+    <transition name="fade">
+      <b-alert v-if="alert.show" :variant="alert.type" dismissible @dismissed="alert.show = false" class="alert-bottom-left">
+        {{ alert.message }}
+      </b-alert>
+    </transition>
 
     <div class="table-container">
       <h3 class="mb-4">Resumen de Usuarios</h3>
-      <b-table
-        :items="users"
-        :fields="fields"
-        responsive
-        striped
-        hover
-        small
-      >
+
+      <div v-if="isLoading" class="spinner-container">
+        <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
+      </div>
+
+      <!-- La tabla -->
+      <b-table v-else :items="users" :fields="fields" responsive striped hover small>
         <template #cell(idUser)="row">
-          <b-button
-            variant="link"
-            class="text-primary"
-            @click="showUserModal(row.item)"
-          >
-            {{ row.item.idUser }}
-          </b-button>
+          <span>{{ row.item.idUser }}</span>
+        </template>
+        <template #cell(name)="row">
+          <span>{{ row.item.name }}</span>
+        </template>
+        <template #cell(email)="row">
+          <span>{{ row.item.email }}</span>
+        </template>
+        <template #cell(status)="row">
+          <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
             <b-button
-              variant="warning"
               size="sm"
-              class="mr-2"
-              @click="openEditModal(row.item)"
+              :variant="row.item.status ? 'danger' : 'warning'"
+              @click="toggleStatus(row.item)"
             >
-              <i class="fas fa-edit"></i>
-            </b-button>
-            <b-button
-              variant="danger"
-              size="sm"
-              @click="deleteUser(row.item.idUser)"
-            >
-              <i class="fas fa-trash"></i>
+            <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
             </b-button>
           </div>
         </template>
       </b-table>
 
-      <b-button
-        variant="outline-primary"
-        class="btn-view-more mt-4"
-        @click="goToFullUsersPage"
-      >
+      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullUsersPage">
         Ver más
       </b-button>
     </div>
-
-    <!-- Modal para ver detalles del usuario -->
-    <b-modal v-model="showModal" title="Información del Usuario">
-      <div>
-        <p><strong>ID de Usuario:</strong> {{ selectedUser.idUser }}</p>
-        <p><strong>Nombre:</strong> {{ selectedUser.name }}</p>
-        <p><strong>Email:</strong> {{ selectedUser.email }}</p>
-        <p><strong>Estado:</strong> {{ selectedUser.status ? 'Activo' : 'Inactivo' }}</p>
-      </div>
-    </b-modal>
-
-    <!-- Modal para editar un usuario -->
-    <b-modal v-model="showEditModal" title="Editar Usuario">
-      <div>
-        <b-form>
-          <b-form-group label="ID de Usuario">
-            <b-form-input v-model="editUserData.idUser" readonly></b-form-input>
-          </b-form-group>
-          <b-form-group label="Nombre">
-            <b-form-input v-model="editUserData.name"></b-form-input>
-          </b-form-group>
-          <b-form-group label="Email">
-            <b-form-input type="email" v-model="editUserData.email"></b-form-input>
-          </b-form-group>
-          <b-form-group label="Contraseña">
-            <b-form-input type="password" v-model="editUserData.password"></b-form-input>
-          </b-form-group>
-          <b-form-group label="Estado">
-            <b-form-select
-              v-model="editUserData.status"
-              :options="[true, false]"
-            ></b-form-select>
-          </b-form-group>
-        </b-form>
-      </div>
-      <template #modal-footer>
-        <b-button variant="success" @click="updateUser">Guardar Cambios</b-button>
-        <b-button variant="danger" @click="showEditModal = false">Cancelar</b-button>
-      </template>
-    </b-modal>
   </div>
 </template>
 
@@ -109,18 +61,16 @@ import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { useRouter } from "vue-router";
-import { userApi } from "../http-common";
+//import {userApi} from "../http-common";
+
 
 export default defineComponent({
-  name: "users",
+  name: "Users",
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
-    const showModal = ref(false);
-    const showEditModal = ref(false);
+    const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
-    const selectedUser = reactive({ idUser: "", name: "", email: "", password: "", status: false });
-    const editUserData = reactive({ idUser: "", name: "", email: "", password: "", status: false });
     const users = ref([]);
     const router = useRouter();
 
@@ -128,45 +78,66 @@ export default defineComponent({
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    const showUserModal = (user: any) => {
-      Object.assign(selectedUser, user);
-      showModal.value = true;
-    };
-
     const goToFullUsersPage = () => {
       router.push({ name: "fullusers" });
     };
 
-    const openEditModal = (user: any) => {
-      Object.assign(editUserData, user);
-      showEditModal.value = true;
-    };
-
-    const updateUser = async () => {
-      // Lógica para actualizar un usuario
-      // ...
-    };
-
-    const deleteUser = async (id: string) => {
-      // Lógica para eliminar un usuario
-      // ...
-    };
-
+    // Función para obtener los usuarios
     const fetchUsers = async () => {
-      // Lógica para obtener los usuarios
-      // ...
+      try {
+        const data = await userApi.getAllUsers();
+        console.log("Datos recibidos:", data);
+        users.value = Array.isArray(data.response.users) ? data.response.users : [];
+      } catch (error) {
+        console.error("Error al cargar los usuarios:", error);
+        alert.show = true;
+        alert.message = "Error al cargar los usuarios.";
+        alert.type = "danger";
+        users.value = [];
+      } finally {
+        isLoading.value = false;
+      }
     };
 
-    onMounted(() => {
-      fetchUsers();
-    });
+    onMounted(fetchUsers);
+
+    // Función para cambiar el estado del usuario
+    const toggleStatus = async (user: any) => {
+      if (!user.idUser) {
+        alert.message = "El ID del usuario no está disponible.";
+        alert.type = "danger";
+        alert.show = true;
+        return;
+      }
+
+      try {
+        const newStatus = !user.status;
+        const response = await userApi.updateUserStatus(user.idUser, newStatus);
+        if (response && response.success) {
+          user.status = newStatus; // Actualizar el estado localmente
+          alert.message = "Estado del usuario actualizado con éxito";
+          alert.type = "success";
+        } else {
+          throw new Error("La respuesta de la API no es la esperada");
+        }
+      } catch (error) {
+        console.error("Error al actualizar el estado:", error);
+        alert.message = "Error al actualizar el estado del usuario";
+        alert.type = "danger";
+      } finally {
+        alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+      }
+    };
 
     const fields = [
-      { key: "idUser", label: "ID de Usuario" },
-      { key: "name", label: "Nombre" },
-      { key: "email", label: "Email" },
-      { key: "status", label: "Estado" },
-      { key: "actions", label: "Acciones" }
+      { key: "idUser", label: "ID", sortable:true },
+      { key: "name", label: "Nombre", sortable:true },
+      { key: "email", label: "Email", sortable:true },
+      { key: "status", label: "Estado", sortable:true },
+      { key: "actions", label: "Acciones" },
     ];
 
     return {
@@ -174,23 +145,17 @@ export default defineComponent({
       toggleSidebar,
       users,
       fields,
-      showModal,
-      showEditModal,
-      selectedUser,
-      editUserData,
+      isLoading,
       alert,
-      showUserModal,
+      toggleStatus,
       goToFullUsersPage,
-      openEditModal,
-      updateUser,
-      deleteUser,
     };
   },
 });
 </script>
 
+
 <style scoped>
-/* Estilos similares, ajustando los títulos */
 .header {
   width: 100%;
   height: 25vh;
@@ -227,6 +192,13 @@ export default defineComponent({
   background-color: #f7f7f7;
 }
 
+.b-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 5px;
+}
+
 .d-flex {
   display: flex;
   justify-content: space-between;
@@ -251,5 +223,51 @@ export default defineComponent({
   background-color: #007bff;
   color: white;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.custom-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: #007bff;
+}
+
+.form-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.alert-bottom-left {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1050;
+}
+.btn{
+  width: 7.5rem;
 }
 </style>

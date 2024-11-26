@@ -51,4 +51,96 @@ export const categoryApi = {
   }
 };
 
+export const productApi = {
+  createProduct: async (productCreateRequest: {name: string; description: string; categoryIds: number[] }) => {
+    try {
+      const response = await instance.post('/products', productCreateRequest);
+      console.log('Producto creado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el producto:', error);
+      throw error;
+    }
+  },
+
+  updateProduct: async (idProduct: number, productCreateRequest: { name: string; description: string; categoryIds: number[] }) => {
+    try {
+      const response = await instance.put(`/products/${idProduct}`, productCreateRequest);
+      console.log('Producto actualizado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar el producto:', error);
+      throw error;
+    }
+  },
+
+  getProductById: async (idProduct: number) => {
+    try {
+      const response = await instance.get(`/products/${idProduct}`);
+      console.log('Producto obtenido:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener el producto:', error);
+      throw error;
+    }
+  },
+
+  getProducts: async () => {
+    try {
+      const response = await instance.get('/products');
+      console.log('Productos obtenidos:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener los productos:', error);
+      throw error;
+    }
+  }
+};
+
+export const stockApi = {
+  createStock: async (stockData: { productId: number; color: string; price: number; quantity: number; images?: string[] }) => {
+    try {
+      const response = await instance.post('/stock', stockData);
+      console.log('Stock creado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el stock:', error);
+      throw error;
+    }
+  },
+
+  getStocks: async () => {
+    try {
+      const response = await instance.get('/stock');
+      console.log('Stocks obtenidos:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener los stocks:', error);
+      throw error;
+    }
+  },
+
+  getStockById: async (idStock: number) => {
+    try {
+      const response = await instance.get(`/stock/${idStock}`);
+      console.log('Stock obtenido:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener el stock:', error);
+      throw error;
+    }
+  },
+
+  updateStock: async (idStock: number, stockData: { color?: string; price?: number; quantity?: number; status?: boolean; images?: string[] }) => {
+    try {
+      const response = await instance.put(`/stock/${idStock}`, stockData);
+      console.log('Stock actualizado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al actualizar el stock:', error);
+      throw error;
+    }
+  }
+};
+
 export default instance;
