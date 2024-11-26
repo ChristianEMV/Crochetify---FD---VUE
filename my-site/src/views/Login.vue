@@ -4,7 +4,6 @@
       <b-row no-gutters>
         <b-col md="6">
           <b-card-body class="p-4">
-            <!-- Uso de "logo" importado -->
             <b-img :src="logo" alt="App Icon" fluid class="mb-3 d-block mx-auto logo"></b-img>
             <h3 class="text-center mb-4">¡Bienvenido de vuelta!</h3>
 
@@ -57,7 +56,6 @@
           </b-card-body>
         </b-col>
         <b-col md="6">
-          <!-- Uso de "illustration" importado -->
           <b-card-img
             :src="illustration"
             alt="Login image"
@@ -73,8 +71,8 @@
 import { defineComponent, reactive, ref } from "vue";
 import axios from "../http-common";
 import { useRouter } from "vue-router";
-import logo from "../assets/CrochetifyLogo.png"; // Corrige la ruta de importación
-import illustration from "../assets/login-illustration.jpeg"; // Corrige la ruta de importación
+import logo from "../assets/CrochetifyLogo.png"; 
+import illustration from "../assets/login-illustration.jpeg"; 
 
 export default defineComponent({
   name: "LoginView",
@@ -99,7 +97,7 @@ export default defineComponent({
         isLoading.value = true;
 
         const response = await axios.post(
-          "http://localhost:8080/api/crochetify/login",
+          "http://18.215.115.34:8007/api/crochetify/login",
           {
             email: form.email,
             password: form.password,
