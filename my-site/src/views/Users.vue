@@ -49,9 +49,6 @@
         </template>
       </b-table>
 
-      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullUsersPage">
-        Ver más
-      </b-button>
     </div>
   </div>
 </template>
