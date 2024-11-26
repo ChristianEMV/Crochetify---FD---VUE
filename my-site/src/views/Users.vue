@@ -43,7 +43,7 @@
               :variant="row.item.status ? 'danger' : 'warning'"
               @click="toggleStatus(row.item)"
             >
-            <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
+            <span>{{ row.item.status ? 'Deshabilitada' : 'Habilitada' }}</span>
             </b-button>
           </div>
         </template>
