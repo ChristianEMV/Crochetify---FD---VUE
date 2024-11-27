@@ -16,11 +16,21 @@
     </transition>
 
     <div class="table-container">
-      <h3 class="mb-4">Resumen de Productos</h3>
-      <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
+      <h3 class="mb-4">Tabla de Productos</h3>
+      <div class="d-flex mb-3">
+        <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
         <i class="fas fa-plus"></i> Agregar Producto
       </b-button>
-
+      <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <b-form-input
+          v-model="searchQuery"
+          placeholder="Buscar..."
+          class="search-input"
+        ></b-form-input>
+        </div>
+      </div>
+      
       <transition name="fade">
         <div v-if="showCreateForm" class="mb-4 form-container">
           <b-form @submit.prevent="createProduct">
@@ -99,7 +109,7 @@
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
 
-      <b-table v-else :items="products" :fields="fields" responsive striped hover small>
+      <b-table v-else :items="filteredProducts" :fields="fields" responsive striped hover small>
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
         </template>
@@ -140,7 +150,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
+import { defineComponent, ref, reactive, onMounted, computed } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { useRouter } from "vue-router";
@@ -166,6 +176,7 @@ export default defineComponent({
     const categories = ref<Category[]>([]);
     const router = useRouter();
     const showProductModal = ref(false);
+    const searchQuery = ref("");
     const selectedProduct = ref<{ idProduct: number; name: string; description: string; categories: Category[] } | null>(null);
 
     const toggleSidebar = () => {
@@ -269,6 +280,17 @@ export default defineComponent({
       }
     };
 
+    const filteredProducts = computed(() => {
+      return products.value.filter((product: {idProduct: number, name: string, description: string, categories: Category[] }) => {
+        return (
+          product.idProduct.toString().includes(searchQuery.value) ||
+          product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchQuery.value.toLowerCase())||
+          product.categories.map((category: { name: string }) => category.name).join(', ').toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
+      });
+    });
+
     const fetchCategories = async () => {
       try {
         const data = await categoryApi.getAllCategories();
@@ -293,10 +315,10 @@ export default defineComponent({
     });
 
     const fields = [
-      { key: "idProduct", label: "ID" },
-      { key: "name", label: "Nombre del Producto" },
-      { key: "description", label: "Descripción" },
-      { key: "categories", label: "Categorías" },
+      { key: "idProduct", label: "ID", sortable:true },
+      { key: "name", label: "Nombre del Producto", sortable:true },
+      { key: "description", label: "Descripción", sortable:true },
+      { key: "categories", label: "Categorías", sortable:true },
       { key: "actions", label: "Acciones" }
     ];
 
@@ -317,7 +339,9 @@ export default defineComponent({
       updateProduct,
       goToFullProductsPage,
       isLoading,
+      searchQuery,
       fetchCategories,
+      filteredProducts,
       categories,
       showProductModal,
       selectedProduct,
@@ -417,7 +441,7 @@ export default defineComponent({
 }
 
 .form-container {
-  background-color: #fff;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -443,6 +467,44 @@ export default defineComponent({
   bottom: 20px;
   left: 20px;
   z-index: 1050;
+}
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 40%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.search-input {
+  padding-left: 30px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
 }
 
 .product-name {

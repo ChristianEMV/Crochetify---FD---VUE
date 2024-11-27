@@ -10,21 +10,31 @@
     </div>
 
     <transition name="fade">
-      <b-alert v-if="alert.show" :variant="alert.type" dismissible @dismissed="alert.show = false" class="alert-bottom-left">
+      <b-alert
+        v-if="alert.show"
+        :variant="alert.type"
+        dismissible
+        @dismissed="alert.show = false"
+        class="alert-bottom-left"
+      >
         {{ alert.message }}
       </b-alert>
     </transition>
 
     <div class="table-container">
-      <h3 class="mb-4">Resumen de Stock</h3>
-      <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
+      <h3 class="mb-4">Tabla de Stock</h3>
+      <div class="d-flex mb-3">
+        <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
         <i class="fas fa-plus"></i> Agregar Stock
       </b-button>
+      
+      </div>
 
       <transition name="fade">
         <div v-if="showCreateForm" class="mb-4 form-container">
           <b-form @submit.prevent="createStock">
             <b-form-group label="Producto" label-for="product-select">
+              <i class="fas fa-box-open"></i> Producto asociado al stock
               <b-form-select
                 id="product-select"
                 v-model="newStockData.productId"
@@ -34,28 +44,48 @@
               ></b-form-select>
             </b-form-group>
             <b-form-group label="Color" label-for="color-picker">
-              <input type="color" id="color-picker" v-model="newStockData.color" required />
+              <i class="fas fa-palette"></i> Color del stock
+              <br />
+              <input
+                type="color"
+                id="color-picker"
+                v-model="newStockData.color"
+                required
+              />
             </b-form-group>
             <b-form-group label="Precio" label-for="price-input">
+              <i class="fas fa-dollar-sign"></i> Precio del stock
               <b-form-input
                 id="price-input"
                 v-model="newStockData.price"
                 type="number"
                 required
                 placeholder="Introduce el precio"
+                min="1"
+                step="0.01"
               ></b-form-input>
             </b-form-group>
             <b-form-group label="Cantidad" label-for="quantity-input">
+              <i class="fas fa-sort-numeric-up"></i> Cantidad del stock
               <b-form-input
                 id="quantity-input"
                 v-model="newStockData.quantity"
                 type="number"
                 required
                 placeholder="Introduce la cantidad"
+                min="1"
+                step="1"
               ></b-form-input>
             </b-form-group>
             <b-form-group label="Imágenes" label-for="images-input">
-              <input type="file" id="images-input" multiple @change="handleImageUpload" />
+              <i class="fas fa-images"></i> Imágenes del stock
+              <br />
+              <input
+                type="file"
+                id="images-input"
+                multiple
+                @change="handleImageUpload"
+              />
               <div
                 class="drop-area"
                 @dragover.prevent
@@ -63,10 +93,23 @@
               >
                 Arrastra y suelta las imágenes aquí
               </div>
+              <div class="image-preview">
+                <img
+                  v-for="(image, index) in newStockData.images"
+                  :key="index"
+                  :src="image"
+                  class="preview-image"
+                />
+              </div>
             </b-form-group>
-            <br>
+            <br />
             <div class="button-group">
-              <b-button variant="danger" @click="toggleCreateForm">Cancelar</b-button>
+              <b-button variant="danger" @click="toggleCreateForm"
+                >Cancelar</b-button
+              >
+              <b-button variant="secondary" @click="resetForm"
+                >Limpiar</b-button
+              >
               <b-button variant="success" type="submit">Guardar</b-button>
             </div>
           </b-form>
@@ -86,7 +129,12 @@
               ></b-form-select>
             </b-form-group>
             <b-form-group label="Color" label-for="edit-color-picker">
-              <input type="color" id="edit-color-picker" v-model="editStockData.color" required />
+              <input
+                type="color"
+                id="edit-color-picker"
+                v-model="editStockData.color"
+                required
+              />
             </b-form-group>
             <b-form-group label="Precio" label-for="edit-price-input">
               <b-form-input
@@ -107,7 +155,12 @@
               ></b-form-input>
             </b-form-group>
             <b-form-group label="Imágenes" label-for="edit-images-input">
-              <input type="file" id="edit-images-input" multiple @change="handleEditImageUpload" />
+              <input
+                type="file"
+                id="edit-images-input"
+                multiple
+                @change="handleEditImageUpload"
+              />
               <div
                 class="drop-area"
                 @dragover.prevent
@@ -116,9 +169,11 @@
                 Arrastra y suelta las imágenes aquí
               </div>
             </b-form-group>
-            <br>
+            <br />
             <div class="button-group">
-              <b-button variant="danger" @click="toggleEditForm">Cancelar</b-button>
+              <b-button variant="danger" @click="toggleEditForm"
+                >Cancelar</b-button
+              >
               <b-button variant="success" type="submit">Guardar</b-button>
             </div>
           </b-form>
@@ -129,15 +184,28 @@
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
 
-      <b-table v-else :items="stocks" :fields="fields" responsive striped hover small>
+      <b-table
+        v-else
+        :items="stocks"
+        :fields="fields"
+        responsive
+        striped
+        hover
+        small
+      >
         <template #cell(idStock)="row">
           <span>{{ row.item.idStock }}</span>
         </template>
         <template #cell(product)="row">
-          <span @click="openStockModal(row.item)" class="stock-name">{{ row.item.product.name }}</span>
+          <span @click="openStockModal(row.item)" class="stock-name">{{
+            row.item.product.name
+          }}</span>
         </template>
         <template #cell(color)="row">
-          <span :style="{ backgroundColor: row.item.color }" class="color-box"></span>
+          <span
+            :style="{ backgroundColor: row.item.color }"
+            class="color-box"
+          ></span>
         </template>
         <template #cell(price)="row">
           <span>{{ row.item.price }}</span>
@@ -165,15 +233,33 @@
       <div v-if="selectedStock">
         <p><strong>ID:</strong> {{ selectedStock.idStock }}</p>
         <p><strong>Producto:</strong> {{ selectedStock.product.name }}</p>
-        <p><strong>Color:</strong> <span :style="{ backgroundColor: selectedStock.color }" class="color-box"></span></p>
+        <p>
+          <strong>Color:</strong>
+          <span
+            :style="{ backgroundColor: selectedStock.color }"
+            class="color-box"
+          ></span>
+        </p>
         <p><strong>Precio:</strong> {{ selectedStock.price }}</p>
         <p><strong>Cantidad:</strong> {{ selectedStock.quantity }}</p>
         <p><strong>Imágenes:</strong></p>
         <div v-if="selectedStock.images && selectedStock.images.length">
-          <img v-for="(image, index) in selectedStock.images" :key="index" :src="image" class="stock-image" />
+          <img
+            v-for="(image, index) in selectedStock.images"
+            :key="index"
+            :src="image"
+            class="stock-image"
+          />
         </div>
       </div>
     </b-modal>
+
+    <div v-if="showModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="showModal = false">&times;</span>
+        <img :src="stockImageUrl" alt="Stock Image" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -193,13 +279,35 @@ export default defineComponent({
     const showEditForm = ref(false);
     const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
-    const newStockData = reactive({ productId: 0, color: "#000000", price: 0, quantity: 0, images: [] as string[] });
-    const editStockData = reactive({ idStock: 0, productId: 0, color: "#000000", price: 0, quantity: 0, images: [] as string[] });
+    const newStockData = reactive({
+      productId: 0,
+      color: "#000000",
+      price: 0,
+      quantity: 0,
+      images: [] as string[],
+    });
+    const editStockData = reactive({
+      idStock: 0,
+      productId: 0,
+      color: "#000000",
+      price: 0,
+      quantity: 0,
+      images: [] as string[],
+    });
     const stocks = ref([]);
     const products = ref([]);
     const router = useRouter();
     const showStockModal = ref(false);
-    const selectedStock = ref<{ idStock: number; product: { name: string }; color: string; price: number; quantity: number; images: string[] } | null>(null);
+    const selectedStock = ref<{
+      idStock: number;
+      product: { name: string };
+      color: string;
+      price: number;
+      quantity: number;
+      images: string[];
+    } | null>(null);
+    const showModal = ref(false);
+    const stockImageUrl = ref("");
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
@@ -207,11 +315,7 @@ export default defineComponent({
 
     const toggleCreateForm = () => {
       showCreateForm.value = !showCreateForm.value;
-      newStockData.productId = 0;
-      newStockData.color = "#000000";
-      newStockData.price = 0;
-      newStockData.quantity = 0;
-      newStockData.images = [];
+      resetForm();
     };
 
     const toggleEditForm = () => {
@@ -222,6 +326,14 @@ export default defineComponent({
       editStockData.price = 0;
       editStockData.quantity = 0;
       editStockData.images = [];
+    };
+
+    const resetForm = () => {
+      newStockData.productId = 0;
+      newStockData.color = "#000000";
+      newStockData.price = 0;
+      newStockData.quantity = 0;
+      newStockData.images = [];
     };
 
     const createStock = async () => {
@@ -286,7 +398,7 @@ export default defineComponent({
         const data = await productApi.getProducts();
         products.value = data.response.products.map((product: any) => ({
           value: product.idProduct,
-          text: product.name
+          text: product.name,
         }));
       } catch (error) {
         console.error("Error al cargar los productos:", error);
@@ -361,6 +473,12 @@ export default defineComponent({
       }
     };
 
+    const displayStockModal = (base64Image: string) => {
+      const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+      stockImageUrl.value = imageUrl;
+      showModal.value = true;
+    };
+
     onMounted(() => {
       fetchStocks();
       fetchProducts();
@@ -372,7 +490,7 @@ export default defineComponent({
       { key: "color", label: "Color" },
       { key: "price", label: "Precio" },
       { key: "quantity", label: "Cantidad" },
-      { key: "actions", label: "Acciones" }
+      { key: "actions", label: "Acciones" },
     ];
 
     return {
@@ -397,8 +515,12 @@ export default defineComponent({
       handleEditDrop,
       isLoading,
       products,
+      displayStockModal,
+      selectedStock,
+      showModal,
+      stockImageUrl,
       showStockModal,
-      selectedStock
+      resetForm,
     };
   },
 });
@@ -489,7 +611,7 @@ export default defineComponent({
 }
 
 .form-container {
-  background-color: #fff;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -502,11 +624,13 @@ export default defineComponent({
   gap: 10px;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s;
 }
 
-.fade-enter, .fade-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -534,5 +658,86 @@ export default defineComponent({
   height: 100px;
   object-fit: cover;
   margin-right: 10px;
+}
+
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.form-container {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.image-preview {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preview-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.drop-area {
+  border: 2px dashed #007bff;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.drop-area:hover {
+  background-color: #e9f5ff;
+}
+
+.b-form-group i {
+  margin-right: 5px;
 }
 </style>
