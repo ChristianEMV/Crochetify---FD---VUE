@@ -1,80 +1,3 @@
-<template>
-  <div>
-    <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" />
-    <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
-      <div class="header-wrapper">
-        <h3><i class="fas fa-box"></i> Órdenes</h3>
-        <h6>Gestión de órdenes</h6>
-      </div>
-    </div>
-
-    <b-alert v-if="alert.show" :variant="alert.type" dismissible>
-      {{ alert.message }}
-    </b-alert>
-
-    <div class="table-container">
-      <h3 class="mb-4">Resumen de Órdenes</h3>
-      <b-table :items="orders" :fields="fields" responsive striped hover small>
-        <template #cell(idOrden)="row">
-          <b-button
-            variant="link"
-            class="text-primary"
-            @click="showOrderModal(row.item)"
-          >
-            {{ row.item.idOrden }}
-          </b-button>
-        </template>
-        <template #cell(status)="row">
-          <span>{{ row.item.status ? "Activa" : "Inactiva" }}</span>
-        </template>
-      </b-table>
-
-      <b-button @click="showCreateShipmentModal" variant="primary" class="mt-4">
-        Crear Envío
-      </b-button>
-    </div>
-
-    <!-- Modal para ver detalles de la orden -->
-    <b-modal v-model="showModal" title="Información de la Orden">
-      <div>
-        <p><strong>ID de Orden:</strong> {{ selectedOrder.idOrden }}</p>
-        <p><strong>Estado:</strong> {{ selectedOrder.status ? "Activa" : "Inactiva" }}</p>
-        <p><strong>Total:</strong> ${{ selectedOrder.total }}</p>
-        <p><strong>Fecha de Compra:</strong> {{ selectedOrder.purchase_day }}</p>
-      </div>
-    </b-modal>
-
-    <!-- Modal para crear un nuevo envío -->
-    <b-modal v-model="showCreateShipmentModal" title="Crear Nuevo Envío">
-      <b-form @submit.prevent="createShipment">
-        <b-form-group label="Fecha de Envío:" label-for="shipping-day">
-          <b-form-input
-            id="shipping-day"
-            v-model="newShipment.shipping_day"
-            type="date"
-            required
-          />
-        </b-form-group>
-        <b-form-group label="ID de Orden:" label-for="order-id">
-          <b-form-input
-            id="order-id"
-            v-model="newShipment.idOrden"
-            type="number"
-            required
-          />
-        </b-form-group>
-        <div class="text-right">
-          <b-button type="submit" variant="success">Crear</b-button>
-          <b-button variant="secondary" @click="showCreateShipmentModal = false">
-            Cancelar
-          </b-button>
-        </div>
-      </b-form>
-    </b-modal>
-  </div>
-</template>
-
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
@@ -89,7 +12,7 @@ export default defineComponent({
   setup() {
     const isSidebarOpen = ref(false);
     const showModal = ref(false);
-    const isCreateShipmentModalVisible = ref(false); // Cambié el nombre
+    const isCreateShipmentModalVisible = ref(false); // Nombre consistente
     const alert = reactive({ show: false, message: "", type: "success" });
     const selectedOrder = reactive({
       idOrden: "",
@@ -139,7 +62,7 @@ export default defineComponent({
         alert.show = true;
         alert.message = "Envío creado exitosamente.";
         alert.type = "success";
-        isCreateShipmentModalVisible.value = false;
+        isCreateShipmentModalVisible.value = false; // Cambio en nombre
         fetchOrders(); // Recargar las órdenes
       } catch (error) {
         console.error("Error al crear el envío:", error);
@@ -164,7 +87,7 @@ export default defineComponent({
       orders,
       fields,
       showModal,
-      isCreateShipmentModalVisible, // Uso del nuevo nombre
+      isCreateShipmentModalVisible,
       selectedOrder,
       alert,
       newShipment,
@@ -173,7 +96,6 @@ export default defineComponent({
       createShipment,
     };
   },
-
 });
 </script>
 
