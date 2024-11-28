@@ -31,7 +31,7 @@
       <!-- Tabla de envíos -->
       <b-table 
         v-else 
-        :items="shipments" 
+        :items="paginatedShipments" 
         :fields="fields" 
         responsive 
         striped 
@@ -39,7 +39,7 @@
         small
       >
         <template #cell(idShipment)="row">
-          <span>{{ row.item.idShipment }}</span>
+          <span @click="openShipmentModal(row.item)" class="shipment-id">{{ row.item.idShipment }}</span>
         </template>
         <template #cell(status)="row">
           <span>
@@ -53,12 +53,30 @@
           <span>{{ row.item.delivery_day || 'No asignada' }}</span>
         </template>
       </b-table>
+
+      <!-- Paginación -->
+      <b-pagination 
+        v-model="currentPage" 
+        :total-rows="shipments.length" 
+        :per-page="perPage" 
+        align="center" 
+        class="mt-3"
+      ></b-pagination>
     </div>
+
+    <b-modal v-model="showShipmentModal" title="Detalles del Envío" hide-footer>
+      <div v-if="selectedShipment">
+        <p><strong>ID de la Orden:</strong> {{ selectedShipment.orden?.idOrden || 'N/A' }}</p>
+        <p><strong>Estado de la Orden:</strong> {{ selectedShipment.orden?.status || 'No entregada' }}</p>
+        <p><strong>Total de la Orden:</strong> {{ selectedShipment.orden?.total || 'N/A' }}</p>
+        <p><strong>Fecha de Compra:</strong> {{ selectedShipment.orden?.purchase_day || 'N/A' }}</p>
+      </div>
+    </b-modal>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
+import { defineComponent, ref, reactive, onMounted, computed } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { apiShipments } from "../http-common";
@@ -71,28 +89,44 @@ export default defineComponent({
     const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
     const shipments = ref([]);
-    
+    const showShipmentModal = ref(false);
+    const selectedShipment = ref<any>(null);
+
+    const currentPage = ref(1);
+    const perPage = ref(10);
+
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
+    const openShipmentModal = (shipment: any) => {
+      selectedShipment.value = null;
+      setTimeout(() => {
+        selectedShipment.value = shipment;
+        showShipmentModal.value = true;
+      }, 0);
+    };
+
     const fetchShipments = async () => {
-  try {
-    const data = await apiShipments.getAllShipments();
-    console.log("Datos recibidos:", data);
+      try {
+        const data = await apiShipments.getAllShipments();
+        shipments.value = Array.isArray(data.response.shipments) ? data.response.shipments : [];
+      } catch (error) {
+        console.error("Error al cargar los envíos:", error);
+        alert.show = true;
+        alert.message = "Error al cargar los envíos.";
+        alert.type = "danger";
+      } finally {
+        isLoading.value = false;
+      }
+    };
 
-    shipments.value = Array.isArray(data.response.shipments) ? data.response.shipments : [];
-  } catch (error) {
-    console.error("Error al cargar los envíos:", error);
-    alert.show = true;
-    alert.message = "Error al cargar los envíos.";
-    alert.type = "danger";
-  } finally {
-    isLoading.value = false;
-  }
-};
+    const paginatedShipments = computed(() => {
+      const start = (currentPage.value - 1) * perPage.value;
+      const end = start + perPage.value;
+      return shipments.value.slice(start, end);
+    });
 
-  //validar fechas
     onMounted(fetchShipments);
 
     const fields = [
@@ -106,9 +140,15 @@ export default defineComponent({
       isSidebarOpen,
       toggleSidebar,
       shipments,
+      paginatedShipments,
       fields,
       isLoading,
       alert,
+      openShipmentModal,
+      showShipmentModal,
+      selectedShipment,
+      currentPage,
+      perPage,
     };
   },
 });
@@ -183,5 +223,10 @@ export default defineComponent({
   background-color: #007bff;
   color: white;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.shipment-id {
+  cursor: pointer;
+  color: #007bff;
 }
 </style>

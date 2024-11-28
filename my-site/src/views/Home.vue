@@ -50,6 +50,7 @@ export default defineComponent({
     const shipments = ref([]);
     const pendingOrders = ref(0);
     const totalSelling = ref(0);
+    const totalErnings = ref(0); // Aseguramos que esta variable esté definida
 
     const cards = ref([
       {
@@ -75,7 +76,7 @@ export default defineComponent({
       },
       {
         id: "total-earnings",
-        value: "$59,482",
+        value: "$0",
         title: "Ganancias Totales",
         description: "Total de ganancias obtenidas en el mes",
         iconClass: "fas fa-dollar-sign icon-circle-earnings",
@@ -100,16 +101,23 @@ export default defineComponent({
         shipments.value = Array.isArray(data.response.shipments)
           ? data.response.shipments
           : [];
+        
         // Filtrar los pedidos por estado
         pendingOrders.value = shipments.value.filter(
           (item: any) => item.status === 1
         ).length;
+        
         totalSelling.value = shipments.value.filter(
           (item: any) => item.status === 2
         ).length;
 
+        // Calcular totalErnings con la suma de item.orden.total
+        totalErnings.value = shipments.value.reduce((sum: number, item: any) => sum + (item.orden.total || 0), 0);
+
+        // Actualizar los valores de las tarjetas
         cards.value[1].value = totalSelling.value.toString();
         cards.value[2].value = pendingOrders.value.toString();
+        cards.value[3].value = `$${totalErnings.value.toFixed(2)}`; // Formatear ganancias como moneda
       } catch (error) {
         console.error("Error al cargar los envíos:", error);
       }
@@ -134,6 +142,11 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+/* Estilos adicionales, si es necesario */
+</style>
+
 
 
 <style scoped>
