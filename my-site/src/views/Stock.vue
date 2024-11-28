@@ -26,8 +26,7 @@
       <div class="d-flex mb-3">
         <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
         <i class="fas fa-plus"></i> Agregar Stock
-      </b-button>
-      
+      </b-button>     
       </div>
 
       <transition name="fade">
@@ -335,7 +334,6 @@ export default defineComponent({
       newStockData.quantity = 0;
       newStockData.images = [];
     };
-
     const createStock = async () => {
       try {
         await stockApi.createStock(newStockData);
@@ -399,6 +397,7 @@ export default defineComponent({
         products.value = data.response.products.map((product: any) => ({
           value: product.idProduct,
           text: product.name,
+
         }));
       } catch (error) {
         console.error("Error al cargar los productos:", error);
@@ -472,7 +471,6 @@ export default defineComponent({
         }
       }
     };
-
     const displayStockModal = (base64Image: string) => {
       const imageUrl = `data:image/jpeg;base64,${base64Image}`;
       stockImageUrl.value = imageUrl;

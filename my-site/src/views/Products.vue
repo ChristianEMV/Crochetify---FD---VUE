@@ -30,7 +30,6 @@
         ></b-form-input>
         </div>
       </div>
-      
       <transition name="fade">
         <div v-if="showCreateForm" class="mb-4 form-container">
           <b-form @submit.prevent="createProduct">
@@ -108,7 +107,6 @@
       <div v-if="isLoading" class="spinner-container">
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
-
       <b-table v-else :items="filteredProducts" :fields="fields" responsive striped hover small>
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
@@ -279,7 +277,6 @@ export default defineComponent({
         isLoading.value = false;
       }
     };
-
     const filteredProducts = computed(() => {
       return products.value.filter((product: {idProduct: number, name: string, description: string, categories: Category[] }) => {
         return (

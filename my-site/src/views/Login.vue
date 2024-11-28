@@ -4,7 +4,7 @@
       <b-row no-gutters>
         <b-col md="6">
           <b-card-body class="p-4">
-            <b-img src="/src/assets/CrochetifyLogo.png" alt="App Icon" fluid class="mb-3 d-block mx-auto logo"></b-img>
+            <b-img :src="logo" alt="App Icon" fluid class="mb-3 d-block mx-auto logo"></b-img>
             <h3 class="text-center mb-4">¡Bienvenido de vuelta!</h3>
 
             <b-form @submit.prevent="onSubmit">
@@ -37,13 +37,16 @@
                 ></b-form-input>
               </b-form-group>
 
-              <b-button :disabled="isLoading" type="submit" variant="dark" class="mt-3 w-100 login-button">
+              <b-button
+                :disabled="isLoading"
+                type="submit"
+                variant="dark"
+                class="mt-3 w-100 login-button"
+              >
                 <span v-if="isLoading">
                   <b-spinner small></b-spinner> Iniciando...
                 </span>
-                <span v-else>
-                  Iniciar Sesión
-                </span>
+                <span v-else>Iniciar Sesión</span>
               </b-button>
             </b-form>
 
@@ -53,7 +56,11 @@
           </b-card-body>
         </b-col>
         <b-col md="6">
-          <b-card-img src="/src/assets/login-illustration.jpeg" alt="Login image" class="rounded-0 login-image"></b-card-img>
+          <b-card-img
+            :src="illustration"
+            alt="Login image"
+            class="rounded-0 login-image"
+          ></b-card-img>
         </b-col>
       </b-row>
     </b-card>
@@ -61,16 +68,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue';
-import axios from '../http-common';
-import { useRouter } from 'vue-router';
+import { defineComponent, reactive, ref } from "vue";
+import axios from "../http-common";
+import { useRouter } from "vue-router";
+import logo from "../assets/CrochetifyLogo.png"; 
+import illustration from "../assets/login-illustration.jpeg"; 
 
 export default defineComponent({
-  name: 'LoginView',
+  name: "LoginView",
   setup() {
+    
     const form = reactive({
-      email: '',
-      password: ''
+      email: "",
+      password: "",
     });
 
     const errorMessage = ref<string | null>(null);
@@ -80,31 +90,37 @@ export default defineComponent({
     const onSubmit = async () => {
       try {
         if (!form.email || !form.password) {
-          errorMessage.value = 'Por favor, completa todos los campos';
+          errorMessage.value = "Por favor, completa todos los campos";
           return;
         }
 
         isLoading.value = true;
 
-        const response = await axios.post('http://localhost:8080/api/crochetify/login', {
-          email: form.email,
-          password: form.password
-        });
+        const response = await axios.post(
+          "http://18.215.115.34:8087/api/crochetify/login",
+          {
+            email: form.email,
+            password: form.password,
+          }
+        );
 
         if (response.data.success && response.data.response.token) {
-          localStorage.setItem('authToken', response.data.response.token);
+          localStorage.setItem("authToken", response.data.response.token);
 
-          console.log('Login exitoso:', response.data.message);
+          console.log("Login exitoso:", response.data.message);
 
           setTimeout(() => {
-            router.push('/home');
+            router.push("/home");
           }, 1000);
         } else {
-          errorMessage.value = response.data.message || 'Error en la autenticación. Por favor, inténtalo de nuevo.';
+          errorMessage.value =
+            response.data.message ||
+            "Error en la autenticación. Por favor, inténtalo de nuevo.";
         }
       } catch (error) {
-        console.error('Error en el login:', error);
-        errorMessage.value = 'Credenciales inválidas o error en el servidor';
+        console.error("Error en el login:", error);
+        errorMessage.value =
+          "Credenciales inválidas o error en el servidor";
       } finally {
         isLoading.value = false;
       }
@@ -114,19 +130,21 @@ export default defineComponent({
       form,
       errorMessage,
       isLoading,
-      onSubmit
+      onSubmit,
+      logo, // Asegúrate de exponer la variable para la plantilla
+      illustration, // Asegúrate de exponer la variable para la plantilla
     };
-  }
+  },
 });
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
 
 .login-container {
-  background: linear-gradient(135deg, #AEDCD8 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #aedcd8 0%, #ffffff 100%);
   min-height: 100vh;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
 .login-card {
@@ -164,12 +182,12 @@ h3 {
 }
 
 .b-form-input:focus {
-  border-color: #30596B;
+  border-color: #30596b;
   box-shadow: none;
 }
 
 .login-button {
-  background-color: #30596B;
+  background-color: #30596b;
   border: none;
   border-radius: 5px;
   font-size: 16px;

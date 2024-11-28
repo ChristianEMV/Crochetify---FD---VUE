@@ -1,3 +1,59 @@
+<template>
+    <div>
+      <Navbar @toggle-sidebar="toggleSidebar" />
+      <Sidebar :isOpen="isSidebarOpen" />
+      <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
+        <div class="header-wrapper">
+          <h3><i class="fas fa-box"></i> Órdenes</h3>
+          <h6>Gestión de órdenes</h6>
+        </div>
+      </div>
+  
+      <b-alert v-if="alert.show" :variant="alert.type" dismissible>
+        {{ alert.message }}
+      </b-alert>
+  
+      <div class="table-container">
+        <h3 class="mb-4">Resumen de Órdenes</h3>
+        <b-table
+          :items="orders"
+          :fields="fields"
+          responsive
+          striped
+          hover
+          small
+        >
+          <template #cell(idOrden)="row">
+            <b-button
+              variant="link"
+              class="text-primary"
+              @click="showOrderModal(row.item)"
+            >
+              {{ row.item.idOrden }}
+            </b-button>
+          </template>
+        </b-table>
+  
+        <b-button
+          variant="outline-primary"
+          class="btn-view-more mt-4"
+          @click="goToFullOrdersPage"
+        >
+          Ver más
+        </b-button>
+      </div>
+  
+      <!-- Modal para ver detalles de la orden -->
+      <b-modal v-model="showModal" title="Información de la Orden">
+        <div>
+          <p><strong>ID de Orden:</strong> {{ selectedOrder.idOrden }}</p>
+          <p><strong>Status:</strong> {{ selectedOrder.status ? 'Activa' : 'Inactiva' }}</p>
+          <p><strong>Total:</strong> ${{ selectedOrder.total }}</p>
+          <p><strong>Fecha de Compra:</strong> {{ selectedOrder.purchase_day }}</p>
+        </div>
+      </b-modal>
+    </div>
+  </template>
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
@@ -98,8 +154,6 @@ export default defineComponent({
   },
 });
 </script>
-
-
   
   <style scoped>
   /* Estilos similares, ajustando los títulos */

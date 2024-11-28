@@ -5,7 +5,7 @@
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-layer-group"></i> Categorías</h3>
-        <h6>Gestión de las categorías</h6>
+        <h6>Gestión de las categoría</h6>
       </div>
     </div>
 
@@ -427,4 +427,5 @@ export default defineComponent({
   cursor: pointer;
   color: #007bff;
 }
+
 </style>
