@@ -16,10 +16,20 @@
     </transition>
 
     <div class="table-container">
-      <h3 class="mb-4">Resumen de Categorías</h3>
-      <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
-        <i class="fas fa-plus"></i> Agregar Categoría
-      </b-button>
+      <h3 class="mb-4">Tabla de Categorías</h3>
+      <div class="d-flex mb-3">
+        <b-button variant="primary" @click="toggleCreateForm">
+          <i class="fas fa-plus"></i> Agregar Categoría
+        </b-button>
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <b-form-input
+          v-model="searchQuery"
+          placeholder="Buscar..."
+          class="search-input"
+        ></b-form-input>
+        </div>
+      </div>
 
       <transition name="fade">
         <div v-if="showCreateForm" class="mb-4 form-container">
@@ -66,7 +76,7 @@
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
 
-      <b-table v-else :items="categories" :fields="fields" responsive striped hover small>
+      <b-table v-else :items="filteredCategories" :fields="fields" responsive striped hover small>
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
         </template>
@@ -103,10 +113,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
+import { defineComponent, ref, reactive, onMounted, computed } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
-import { useRouter } from "vue-router";
 import { categoryApi } from "../http-common";
 
 export default defineComponent({
@@ -121,16 +130,12 @@ export default defineComponent({
     const newCategoryData = reactive({ name: "" });
     const editCategoryData = reactive({ id: 0, name: "", status: "Activo" });
     const categories = ref([]);
-    const router = useRouter();
+    const searchQuery = ref("");
     const showCategoryModal = ref(false);
     const selectedCategory = ref<{ id: number; name: string; status: boolean } | null>(null);
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
-    };
-
-    const goToFullCategoriesPage = () => {
-      router.push({ name: "fullcategories" });
     };
 
     const toggleCreateForm = () => {
@@ -230,11 +235,21 @@ export default defineComponent({
     });
 
     const fields = [
-      { key: "id", label: "ID" },
-      { key: "name", label: "Nombre de Categoría" },
-      { key: "status", label: "Estado" },
-      { key: "actions", label: "Acciones" }
+      { key: "id", label: "ID", sortable:true },
+      { key: "name", label: "Nombre de Categoría", sortable:true },
+      { key: "status", label: "Estado", sortable:true },
+      { key: "actions", label: "Acciones", }
     ];
+
+    const filteredCategories = computed(() => {
+      return categories.value.filter((category: { id: number; name: string; status: boolean }) => {
+        return (
+          category.id.toString().includes(searchQuery.value) ||
+          category.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          (category.status ? 'Habilitada' : 'Deshabilitada').toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
+      });
+    });
 
     return {
       isSidebarOpen,
@@ -255,7 +270,9 @@ export default defineComponent({
       fetchCategories,
       isLoading,
       showCategoryModal,
-      selectedCategory
+      selectedCategory,
+      searchQuery,
+      filteredCategories
     };
   },
 });
@@ -331,6 +348,38 @@ export default defineComponent({
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.search-input {
+  padding-left: 30px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
 .spinner-container {
   display: flex;
   justify-content: center;
@@ -346,7 +395,7 @@ export default defineComponent({
 }
 
 .form-container {
-  background-color: #fff;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -378,4 +427,5 @@ export default defineComponent({
   cursor: pointer;
   color: #007bff;
 }
+
 </style>

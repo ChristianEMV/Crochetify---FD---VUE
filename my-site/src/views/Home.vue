@@ -9,7 +9,7 @@
         <h6>Sales overview & summary</h6>
       </div>
     </div>
-    
+
     <div class="row mt-4">
       <div class="col-sm-3" v-for="card in cards" :key="card.id">
         <div class="card custom-card">
@@ -34,59 +34,107 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-import { useRouter } from "vue-router";
+import { defineComponent, ref, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
+import { userApi, apiShipments } from "@/http-common";
 
 export default defineComponent({
   name: "Dashboard",
   components: { Navbar, Sidebar, Grafic },
   setup() {
     const isSidebarOpen = ref(false);
-    const router = useRouter();
+    const isLoading = ref(true);
+    const totalUsers = ref(0);
+    const shipments = ref([]);
+    const pendingOrders = ref(0);
+    const totalSelling = ref(0);
 
     const cards = ref([
       {
         id: "active-users",
-        value: "259",
+        value: "0",
         title: "Usuarios Totales",
         description: "Usuarios totales registrados durante el mes",
-        iconClass: "fas fa-users icon-circle-users"
+        iconClass: "fas fa-users icon-circle-users",
       },
       {
         id: "total-selling",
-        value: "843",
+        value: "0",
         title: "Ventas Totales",
         description: "Ventas totales realizadas durante el mes",
-        iconClass: "fas fa-shopping-cart icon-circle-sells"
+        iconClass: "fas fa-shopping-cart icon-circle-sells",
       },
       {
         id: "pending-orders",
-        value: "196",
+        value: "0",
         title: "Pedidos en Curso",
         description: "Pedidos pendientes de envío",
-        iconClass: "fas fa-box-open icon-circle-orders"
+        iconClass: "fas fa-box-open icon-circle-orders",
       },
       {
         id: "total-earnings",
         value: "$59,482",
         title: "Ganancias Totales",
         description: "Total de ganancias obtenidas en el mes",
-        iconClass: "fas fa-dollar-sign icon-circle-earnings"
-      }
+        iconClass: "fas fa-dollar-sign icon-circle-earnings",
+      },
     ]);
+
+    const fetchUsers = async () => {
+      try {
+        const data = await userApi.getAllUsers();
+        totalUsers.value = Array.isArray(data.response.users)
+          ? data.response.users.length
+          : 0;
+        cards.value[0].value = totalUsers.value.toString();
+      } catch (error) {
+        console.error("Error al cargar los usuarios:", error);
+      }
+    };
+
+    const fetchShipments = async () => {
+      try {
+        const data = await apiShipments.getAllShipments();
+        shipments.value = Array.isArray(data.response.shipments)
+          ? data.response.shipments
+          : [];
+        // Filtrar los pedidos por estado
+        pendingOrders.value = shipments.value.filter(
+          (item: any) => item.status === 1
+        ).length;
+        totalSelling.value = shipments.value.filter(
+          (item: any) => item.status === 2
+        ).length;
+
+        cards.value[1].value = totalSelling.value.toString();
+        cards.value[2].value = pendingOrders.value.toString();
+      } catch (error) {
+        console.error("Error al cargar los envíos:", error);
+      }
+    };
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
+    onMounted(() => {
+      fetchUsers();
+      fetchShipments();
+      isLoading.value = false;
+    });
 
-    return { isSidebarOpen, cards, toggleSidebar };
-  }
+    return {
+      isSidebarOpen,
+      cards,
+      toggleSidebar,
+      isLoading,
+    };
+  },
 });
 </script>
+
 
 <style scoped>
 .header {

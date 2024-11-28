@@ -43,15 +43,11 @@
               :variant="row.item.status ? 'danger' : 'warning'"
               @click="toggleStatus(row.item)"
             >
-            <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
+            <span>{{ row.item.status ? 'Deshabilitada' : 'Habilitada' }}</span>
             </b-button>
           </div>
         </template>
       </b-table>
-
-      <b-button variant="outline-primary" class="btn-view-more mt-4" @click="goToFullUsersPage">
-        Ver más
-      </b-button>
     </div>
   </div>
 </template>
@@ -61,7 +57,7 @@ import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { useRouter } from "vue-router";
-//import {userApi} from "../http-common";
+import {userApi} from "../http-common";
 
 
 export default defineComponent({
