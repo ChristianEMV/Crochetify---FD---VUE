@@ -34,7 +34,7 @@
           <span>{{ row.item.email }}</span>
         </template>
         <template #cell(status)="row">
-          <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
+          <span>{{ row.item.status ? 'Habilitado' : 'Deshabilitado' }}</span>
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
@@ -43,7 +43,7 @@
               :variant="row.item.status ? 'danger' : 'warning'"
               @click="toggleStatus(row.item)"
             >
-            <span>{{ row.item.status ? 'Deshabilitada' : 'Habilitada' }}</span>
+            <span>{{ row.item.status ? 'Deshabilitar' : 'Habilitar' }}</span>
             </b-button>
           </div>
         </template>
@@ -78,7 +78,6 @@ export default defineComponent({
       router.push({ name: "fullusers" });
     };
 
-    // Función para obtener los usuarios
     const fetchUsers = async () => {
       try {
         const data = await userApi.getAllUsers();
@@ -97,7 +96,6 @@ export default defineComponent({
 
     onMounted(fetchUsers);
 
-    // Función para cambiar el estado del usuario
     const toggleStatus = async (user: any) => {
       if (!user.idUser) {
         alert.message = "El ID del usuario no está disponible.";
@@ -110,7 +108,7 @@ export default defineComponent({
         const newStatus = !user.status;
         const response = await userApi.updateUserStatus(user.idUser, newStatus);
         if (response && response.success) {
-          user.status = newStatus; // Actualizar el estado localmente
+          user.status = newStatus;
           alert.message = "Estado del usuario actualizado con éxito";
           alert.type = "success";
         } else {
