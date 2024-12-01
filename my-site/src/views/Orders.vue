@@ -61,7 +61,7 @@
   <input
     type="date"
     v-model="newShipment.shipping_day"
-    :max="new Date().toISOString().split('T')[0]"  
+    :min="new Date().toISOString().split('T')[0]"  
     required
   />
 </b-form-group>
