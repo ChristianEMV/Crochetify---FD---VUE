@@ -38,14 +38,21 @@
         hover 
         small
       >
-        <template #cell(idShipment)="row">
-          <span @click="openShipmentModal(row.item)" class="shipment-id">{{ row.item.idShipment }}</span>
+        <template #cell(idOrden)="row">
+          <span @click="openShipmentModal(row.item)" class="shipment-id">{{ row.item.idOrden }}</span>
         </template>
         <template #cell(status)="row">
-          <span>
-            {{ row.item.status === 1 ? 'Enviado' : row.item.status === 2 ? 'Entregado' : 'Pendiente' }}
-          </span>
-        </template>
+  <span
+    :style="{
+      backgroundColor: row.item.status === 1 ? 'yellow' : 'transparent',
+      padding: '2px 5px',
+      borderRadius: '4px',
+    }"
+  >
+    {{ row.item.status === 1 ? 'Entrega pendiente' : row.item.status === 2 ? 'Entregado' : 'Error' }}
+  </span>
+</template>
+
         <template #cell(shipping_day)="row">
           <span>{{ row.item.shipping_day || 'No asignada' }}</span>
         </template>
@@ -64,12 +71,26 @@
       ></b-pagination>
     </div>
 
+    <!-- Modal de detalles del envío -->
     <b-modal v-model="showShipmentModal" title="Detalles del Envío" hide-footer>
       <div v-if="selectedShipment">
-        <p><strong>ID de la Orden:</strong> {{ selectedShipment.orden?.idOrden || 'N/A' }}</p>
-        <p><strong>Estado de la Orden:</strong> {{ selectedShipment.orden?.status || 'No entregada' }}</p>
-        <p><strong>Total de la Orden:</strong> {{ selectedShipment.orden?.total || 'N/A' }}</p>
-        <p><strong>Fecha de Compra:</strong> {{ selectedShipment.orden?.purchase_day || 'N/A' }}</p>
+        <p><strong>ID de la Orden:</strong> {{ selectedShipment.idOrden }}</p>
+        <p><strong>Total de la Orden:</strong> {{ selectedShipment.total }}</p>
+
+        <p><strong>Productos:</strong></p>
+        <ul>
+          <li v-for="product in selectedShipment?.orderDetails?.ordenProducts || []" :key="product.stockId">
+            <strong>{{ product.product.name }}</strong> (ID: {{ product.product.idProduct }})
+            <br>Descripción: {{ product.product.description }}
+            <br>Cantidad: {{ product.quantity }}
+            <br>Color: <span :style="{ backgroundColor: product.color }" class="product-color"></span>
+          </li>
+        </ul>
+
+        <p>
+          <strong>Estado del Envío:</strong>
+          {{ selectedShipment.status === 1 ? "Pendiente envío" : selectedShipment.status === 2 ? "Entregado" : "Error" }}
+        </p>
       </div>
     </b-modal>
   </div>
@@ -79,7 +100,7 @@
 import { defineComponent, ref, reactive, onMounted, computed } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
-import { apiShipments } from "../http-common";
+import { apiShipments, apiOrden } from "../http-common";
 
 export default defineComponent({
   name: "Shipments",
@@ -99,12 +120,23 @@ export default defineComponent({
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    const openShipmentModal = (shipment: any) => {
-      selectedShipment.value = null;
-      setTimeout(() => {
-        selectedShipment.value = shipment;
+    const openShipmentModal = async (shipment: any) => {
+      selectedShipment.value = { ...shipment };
+      try {
+        const orderData = await apiOrden.getOrdenById(shipment.idOrden);
+        if (orderData.response?.pedido?.ordenProducts) {
+          selectedShipment.value.orderDetails = orderData.response.pedido;
+        } else {
+          console.error("Detalles de la orden no disponibles");
+        }
+      } catch (error) {
+        console.error("Error al cargar los detalles de la orden:", error);
+        alert.show = true;
+        alert.message = "Error al cargar los detalles de la orden.";
+        alert.type = "danger";
+      } finally {
         showShipmentModal.value = true;
-      }, 0);
+      }
     };
 
     const fetchShipments = async () => {
@@ -130,7 +162,7 @@ export default defineComponent({
     onMounted(fetchShipments);
 
     const fields = [
-      { key: "idShipment", label: "ID", sortable: true },
+      { key: "idOrden", label: "ID", sortable: true },
       { key: "status", label: "Estado", sortable: true },
       { key: "shipping_day", label: "Fecha de Envío", sortable: true },
       { key: "delivery_day", label: "Fecha de Entrega", sortable: true },
