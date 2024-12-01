@@ -97,7 +97,7 @@ export default defineComponent({
         isLoading.value = true;
 
         const response = await axios.post(
-          "http://18.215.115.34:8087/api/crochetify/login",
+          "http://localhost/api/crochetify/login",
           {
             email: form.email,
             password: form.password,
