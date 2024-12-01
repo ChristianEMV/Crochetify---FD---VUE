@@ -226,20 +226,26 @@ export default defineComponent({
     };
 
     const openEditForm = (product: any) => {
-      if (!product.idProduct) {
-        console.error("ID del producto no encontrado", product);
-        return;
-      }
-      editProductData.id = product.idProduct;
-      editProductData.name = product.name;
-      editProductData.description = product.description;
-      editProductData.categoryIds = product.categories.map((category: any) => category.id);
-      showEditForm.value = true;
-    };
+  if (!product.idProduct) {
+    console.error("ID del producto no encontrado", product);
+    return;
+  }
+  editProductData.id = product.idProduct;
+  editProductData.name = product.name;
+  editProductData.description = product.description;
+  editProductData.categoryIds = product.categories
+    .filter((category: any) => category && category.id)
+    .map((category: any) => category.id);
+  showEditForm.value = true;
+};
 
     const updateProduct = async () => {
       try {
-        await productApi.updateProduct(editProductData.id, editProductData);
+        await productApi.updateProduct(editProductData.id, {
+          name: editProductData.name,
+          description: editProductData.description,
+          categoryIds: editProductData.categoryIds.filter(id => id !== null)
+        });
         await fetchProducts();
         alert.message = "Producto actualizado con éxito";
         alert.type = "success";
