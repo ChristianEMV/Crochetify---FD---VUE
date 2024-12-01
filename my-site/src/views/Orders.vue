@@ -33,8 +33,11 @@
         </template>
 
         <template #cell(shipmentStatus)="row">
-          {{ row.item.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}  <!-- Mostrar el estado de envío de la orden -->
-        </template>
+  <span :class="row.item.shipmentStatus === 1 ? 'text-success' : ''">
+    {{ row.item.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}
+  </span>
+</template>
+
 
         <template #cell(actions)="row">
           <b-button
@@ -119,10 +122,10 @@ export default defineComponent({
     const alert = reactive({ show: false, message: "", type: "success" });
     const orders = ref([]);
     const fields = [
-      { key: "idOrden", label: "ID de Orden", sortable:true },
-      { key: "total", label: "Total", sortable:true },
-      { key: "ordenProducts", label: "Productos de la Orden", sortable:true },
-      { key: "shipmentStatus", label: "Estado del Envío", sortable:true },
+      { key: "idOrden", label: "ID de Orden" },
+      { key: "total", label: "Total" },
+      { key: "ordenProducts", label: "Productos de la Orden" },
+      { key: "shipmentStatus", label: "Estado del Envío" },
       { key: "actions", label: "Acciones" },
     ];
     const isCreateShipmentModalVisible = ref(false);
@@ -231,7 +234,6 @@ export default defineComponent({
   },
 });
 </script>
-
 
   <style scoped>
   /* Estilos similares, ajustando los títulos */
