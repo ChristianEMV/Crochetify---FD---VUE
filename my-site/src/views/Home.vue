@@ -38,7 +38,7 @@ import { defineComponent, ref, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
-import { userApi, apiShipments } from "@/http-common";
+import { userApi, apiShipments, apiOrden } from "@/http-common";
 
 export default defineComponent({
   name: "Dashboard",
@@ -48,9 +48,10 @@ export default defineComponent({
     const isLoading = ref(true);
     const totalUsers = ref(0);
     const shipments = ref([]);
+    const pedidosUsuario = ref([]);  // Nueva variable para almacenar las órdenes
     const pendingOrders = ref(0);
     const totalSelling = ref(0);
-    const totalErnings = ref(0); 
+    const totalErnings = ref(0);
 
     const cards = ref([
       {
@@ -120,6 +121,24 @@ export default defineComponent({
       }
     };
 
+    const fetchOrders = async () => {
+      try {
+        const data = await apiOrden.getAllOrdenes();  // Llamada a la API para obtener las órdenes
+        pedidosUsuario.value = Array.isArray(data.response.pedidosUsuario)
+          ? data.response.pedidosUsuario
+          : [];
+
+        // Calcular totalErnings con la suma de item.total (de la orden)
+        totalErnings.value = pedidosUsuario.value.reduce(
+          (sum: number, item: any) => sum + (item.total || 0),
+          0
+        );
+        cards.value[3].value = `$${totalErnings.value.toFixed(2)}`; // Formatear ganancias como moneda
+      } catch (error) {
+        console.error("Error al cargar las órdenes:", error);
+      }
+    };
+
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
@@ -127,6 +146,7 @@ export default defineComponent({
     onMounted(() => {
       fetchUsers();
       fetchShipments();
+      fetchOrders();  // Asegúrate de llamar a fetchOrders aquí
       isLoading.value = false;
     });
 
