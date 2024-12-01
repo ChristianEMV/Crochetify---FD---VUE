@@ -119,10 +119,10 @@ export default defineComponent({
     const alert = reactive({ show: false, message: "", type: "success" });
     const orders = ref([]);
     const fields = [
-      { key: "idOrden", label: "ID de Orden" },
-      { key: "total", label: "Total" },
-      { key: "ordenProducts", label: "Productos de la Orden" },
-      { key: "shipmentStatus", label: "Estado del Envío" },
+      { key: "idOrden", label: "ID de Orden", sortable:true },
+      { key: "total", label: "Total", sortable:true },
+      { key: "ordenProducts", label: "Productos de la Orden", sortable:true },
+      { key: "shipmentStatus", label: "Estado del Envío", sortable:true },
       { key: "actions", label: "Acciones" },
     ];
     const isCreateShipmentModalVisible = ref(false);
