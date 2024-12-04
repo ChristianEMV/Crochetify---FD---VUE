@@ -63,9 +63,9 @@ export const productApi = {
     }
   },
 
-  updateProduct: async (idProduct: number, productCreateRequest: { name: string; description: string; categoryIds: number[] }) => {
+  updateProduct: async (idProduct: number, productUpdateRequest: { name: string; description: string; categoryIds: number[] }) => {
     try {
-      const response = await instance.put(`/products/${idProduct}`, productCreateRequest);
+      const response = await instance.put(`/products/${idProduct}`, productUpdateRequest);
       console.log('Producto actualizado:', response.data);
       return response.data;
     } catch (error) {

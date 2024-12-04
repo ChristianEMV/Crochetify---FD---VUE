@@ -38,7 +38,7 @@ import { defineComponent, ref, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
-import { userApi, apiShipments } from "@/http-common";
+import { userApi, apiShipments, apiOrden } from "@/http-common";
 
 export default defineComponent({
   name: "Dashboard",
@@ -48,9 +48,10 @@ export default defineComponent({
     const isLoading = ref(true);
     const totalUsers = ref(0);
     const shipments = ref([]);
+    const pedidosUsuario = ref([]);  // Nueva variable para almacenar las órdenes
     const pendingOrders = ref(0);
     const totalSelling = ref(0);
-    const totalErnings = ref(0); // Aseguramos que esta variable esté definida
+    const totalErnings = ref(0);
 
     const cards = ref([
       {
@@ -111,15 +112,30 @@ export default defineComponent({
           (item: any) => item.status === 2
         ).length;
 
-        // Calcular totalErnings con la suma de item.orden.total
-        totalErnings.value = shipments.value.reduce((sum: number, item: any) => sum + (item.orden.total || 0), 0);
-
         // Actualizar los valores de las tarjetas
         cards.value[1].value = totalSelling.value.toString();
         cards.value[2].value = pendingOrders.value.toString();
-        cards.value[3].value = `$${totalErnings.value.toFixed(2)}`; // Formatear ganancias como moneda
+
       } catch (error) {
         console.error("Error al cargar los envíos:", error);
+      }
+    };
+
+    const fetchOrders = async () => {
+      try {
+        const data = await apiOrden.getAllOrdenes();  // Llamada a la API para obtener las órdenes
+        pedidosUsuario.value = Array.isArray(data.response.pedidosUsuario)
+          ? data.response.pedidosUsuario
+          : [];
+
+        // Calcular totalErnings con la suma de item.total (de la orden)
+        totalErnings.value = pedidosUsuario.value.reduce(
+          (sum: number, item: any) => sum + (item.total || 0),
+          0
+        );
+        cards.value[3].value = `$${totalErnings.value.toFixed(2)}`; // Formatear ganancias como moneda
+      } catch (error) {
+        console.error("Error al cargar las órdenes:", error);
       }
     };
 
@@ -130,6 +146,7 @@ export default defineComponent({
     onMounted(() => {
       fetchUsers();
       fetchShipments();
+      fetchOrders();  // Asegúrate de llamar a fetchOrders aquí
       isLoading.value = false;
     });
 
@@ -142,12 +159,6 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-/* Estilos adicionales, si es necesario */
-</style>
-
-
 
 <style scoped>
 .header {

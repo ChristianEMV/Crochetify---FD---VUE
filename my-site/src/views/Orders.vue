@@ -1,160 +1,240 @@
 <template>
-    <div>
-      <Navbar @toggle-sidebar="toggleSidebar" />
-      <Sidebar :isOpen="isSidebarOpen" />
-      <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
-        <div class="header-wrapper">
-          <h3><i class="fas fa-box"></i> Órdenes</h3>
-          <h6>Gestión de órdenes</h6>
-        </div>
+  <div>
+    <Navbar @toggle-sidebar="toggleSidebar" />
+    <Sidebar :isOpen="isSidebarOpen" />
+    <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
+      <div class="header-wrapper">
+        <h3><i class="fas fa-box"></i> Órdenes</h3>
+        <h6>Gestión de órdenes</h6>
       </div>
-  
-      <b-alert v-if="alert.show" :variant="alert.type" dismissible>
-        {{ alert.message }}
-      </b-alert>
-  
-      <div class="table-container">
-        <h3 class="mb-4">Resumen de Órdenes</h3>
-        <b-table
-          :items="orders"
-          :fields="fields"
-          responsive
-          striped
-          hover
-          small
-        >
-          <template #cell(idOrden)="row">
-            <b-button
-              variant="link"
-              class="text-primary"
-              @click="showOrderModal(row.item)"
-            >
-              {{ row.item.idOrden }}
-            </b-button>
-          </template>
-        </b-table>
-  
-        <b-button
-          variant="outline-primary"
-          class="btn-view-more mt-4"
-          @click="goToFullOrdersPage"
-        >
-          Ver más
-        </b-button>
-      </div>
-  
-      <!-- Modal para ver detalles de la orden -->
-      <b-modal v-model="showModal" title="Información de la Orden">
-        <div>
-          <p><strong>ID de Orden:</strong> {{ selectedOrder.idOrden }}</p>
-          <p><strong>Status:</strong> {{ selectedOrder.status ? 'Activa' : 'Inactiva' }}</p>
-          <p><strong>Total:</strong> ${{ selectedOrder.total }}</p>
-          <p><strong>Fecha de Compra:</strong> {{ selectedOrder.purchase_day }}</p>
-        </div>
-      </b-modal>
     </div>
-  </template>
+
+    <b-alert v-if="alert.show" :variant="alert.type" dismissible>
+      {{ alert.message }}
+    </b-alert>
+
+    <div class="table-container">
+      <h3 class="mb-4">Resumen de Órdenes</h3>
+      <b-table :items="orders" :fields="fields" responsive striped hover small>
+        <template #cell(idOrden)="row">
+          <b-button
+            variant="link"
+            class="text-primary"
+            @click="showOrderModal(row.item)"
+          >
+            {{ row.item.idOrden }}
+          </b-button>
+        </template>
+
+        <template #cell(ordenProducts)="row">
+          {{ row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
+            ? row.item.ordenProducts.map((product: any) => product.product?.name || 'Producto desconocido').join(', ')
+            : 'No hay productos' }}
+        </template>
+
+        <template #cell(shipmentStatus)="row">
+  <span :class="row.item.shipmentStatus === 1 ? 'text-success' : ''">
+    {{ row.item.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}
+  </span>
+</template>
+
+
+        <template #cell(actions)="row">
+          <b-button
+            :disabled="row.item.shipmentStatus === 1"
+            variant="success"
+            @click="showCreateShipmentModal(row.item)"
+          >
+            {{ row.item.shipmentStatus === 1 ? "Enviado" : "Enviar" }}
+          </b-button>
+        </template>
+      </b-table>
+    </div>
+
+    <!-- Modal para crear un shipment (enviar) -->
+    <b-modal
+      v-model="isCreateShipmentModalVisible"
+      title="Crear Envío"
+      @hide="resetShipmentForm"
+    >
+      <div>
+        <b-form @submit.prevent="createShipment">
+          <b-form-group label="Fecha de Envío">
+            <b-form-group label="Fecha de Envío">
+  <input
+    type="date"
+    v-model="newShipment.shipping_day"
+    :min="new Date().toISOString().split('T')[0]"  
+    required
+  />
+</b-form-group>
+
+          </b-form-group>
+
+          <b-button type="submit" variant="success" >
+            Crear Envío
+          </b-button>
+        </b-form>
+      </div>
+      
+    </b-modal>
+
+    <!-- Modal de Detalles de la Orden -->
+    <b-modal
+      v-model="isOrderModalVisible"
+      title="Detalles de la Orden"
+      @hide="selectedOrder = null"
+    >
+      <div v-if="selectedOrder">
+        <p><strong>ID de Orden:</strong> {{ selectedOrder.idOrden }}</p>
+        <p><strong>Total:</strong> {{ selectedOrder.total }}</p>
+        <p><strong>Productos:</strong></p>
+        <ul>
+          <li v-for="product in selectedOrder.ordenProducts || []" :key="product.product?.id || product.id">
+            {{ product.product?.name || 'Producto desconocido' }} - {{ product.quantity }}
+          </li>
+        </ul>
+        <p>
+          <strong>Estado del Envío:</strong>
+          {{ selectedOrder.shipmentStatus === 1 ? "Enviado" : "No enviado" }}
+        </p>
+      </div>
+      <div v-else>
+        <p>No hay detalles disponibles para esta orden.</p>
+      </div>
+      
+    </b-modal>
+
+  </div>
+</template>
+
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
-import { useRouter } from "vue-router";
-import { apiOrden } from "../http-common";
-import { apiShipments } from "../http-common";
+import { apiOrden, apiShipments } from "../http-common";
 
 export default defineComponent({
   name: "Orders",
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
-    const showModal = ref(false);
-    const isCreateShipmentModalVisible = ref(false); // Nombre consistente
     const alert = reactive({ show: false, message: "", type: "success" });
-    const selectedOrder = reactive({
-      idOrden: "",
-      status: false,
-      total: 0,
-      purchase_day: "",
-    });
-    const newShipment = reactive({ shipping_day: "", idOrden: null });
     const orders = ref([]);
-    const router = useRouter();
+    const fields = [
+      { key: "idOrden", label: "ID de Orden" },
+      { key: "total", label: "Total" },
+      { key: "ordenProducts", label: "Productos de la Orden" },
+      { key: "shipmentStatus", label: "Estado del Envío" },
+      { key: "actions", label: "Acciones" },
+    ];
+    const isCreateShipmentModalVisible = ref(false);
+    const newShipment = reactive<{
+      shipping_day: string;
+      idOrden: number | null;
+    }>({
+      shipping_day: "",
+      idOrden: null,
+    });
+    const isOrderModalVisible = ref(false);
+    const selectedOrder = ref<any>(null);
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
-    const showOrderModal = (order: any) => {
-      Object.assign(selectedOrder, order);
-      showModal.value = true;
-    };
-
-    const showCreateShipmentModal = () => {
-      newShipment.shipping_day = "";
-      newShipment.idOrden = null;
-      isCreateShipmentModalVisible.value = true;
-    };
-
     const fetchOrders = async () => {
       try {
-        const data = await apiOrden.getAllOrdenes();
-        orders.value = Array.isArray(data.response.ordenes)
-          ? data.response.ordenes
-          : [];
+        const responseOrders = await apiOrden.getAllOrdenes();
+        const responseShipments = await apiShipments.getAllShipments();
+
+        const ordersData = responseOrders.response?.pedidosUsuario || [];
+        const shipmentsData = responseShipments.response?.shipments || [];
+
+        const shipmentMap = new Map(
+          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+        );
+
+        orders.value = ordersData.map((order: any) => ({
+          ...order,
+          shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+        }));
       } catch (error) {
-        console.error("Error al obtener órdenes:", error);
+        console.error("Error al cargar órdenes:", error);
         alert.show = true;
-        alert.message = "Error al cargar las órdenes.";
+        alert.message = "Error al cargar las órdenes o envíos.";
         alert.type = "danger";
+      }
+    };
+
+    const showCreateShipmentModal = (order: any) => {
+      if (typeof order.idOrden === "number") {
+        newShipment.idOrden = order.idOrden;
+        isCreateShipmentModalVisible.value = true;
+      } else {
+        console.error("idOrden no es válido.");
       }
     };
 
     const createShipment = async () => {
-      try {
-        await apiShipments.createShipment({
-          shipping_day: newShipment.shipping_day,
-          idOrden: newShipment.idOrden!,
-        });
-        alert.show = true;
-        alert.message = "Envío creado exitosamente.";
-        alert.type = "success";
-        isCreateShipmentModalVisible.value = false; // Cambio en nombre
-        fetchOrders(); // Recargar las órdenes
-      } catch (error) {
-        console.error("Error al crear el envío:", error);
-        alert.show = true;
-        alert.message = "Error al crear el envío.";
-        alert.type = "danger";
-      }
+  // Asegurarse de que idOrden no sea null
+  if (newShipment.idOrden !== null && newShipment.shipping_day) {
+    try {
+      const response = await apiShipments.createShipment({
+        idOrden: newShipment.idOrden,  // Ahora idOrden es siempre un número
+        shipping_day: newShipment.shipping_day,
+      });
+      alert.show = true;
+      alert.message = response.message || "Envío creado exitosamente.";
+      alert.type = "success";
+      isCreateShipmentModalVisible.value = false;
+      fetchOrders();
+    } catch (error) {
+      alert.show = true;
+      alert.message = "Error al crear el envío.";
+      alert.type = "danger";
+    }
+  } else {
+    alert.show = true;
+    alert.message = "Por favor, complete todos los campos.";
+    alert.type = "danger";
+  }
+};
+
+
+    const resetShipmentForm = () => {
+      newShipment.shipping_day = "";
+      newShipment.idOrden = null;
     };
 
-    onMounted(fetchOrders);
+    const showOrderModal = (order: any) => {
+      selectedOrder.value = order;
+      isOrderModalVisible.value = true;
+    };
 
-    const fields = [
-      { key: "idOrden", label: "ID de Orden" },
-      { key: "status", label: "Estado" },
-      { key: "total", label: "Total" },
-      { key: "purchase_day", label: "Fecha de Compra" },
-    ];
+    onMounted(() => {
+      fetchOrders();
+    });
 
     return {
       isSidebarOpen,
-      toggleSidebar,
+      alert,
       orders,
       fields,
-      showModal,
       isCreateShipmentModalVisible,
-      selectedOrder,
-      alert,
       newShipment,
-      showOrderModal,
+      isOrderModalVisible,
+      selectedOrder,
+      toggleSidebar,
       showCreateShipmentModal,
       createShipment,
+      resetShipmentForm,
+      showOrderModal,
     };
   },
 });
 </script>
-  
+
   <style scoped>
   /* Estilos similares, ajustando los títulos */
   .header {
