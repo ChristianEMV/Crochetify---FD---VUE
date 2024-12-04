@@ -33,8 +33,8 @@
         </template>
 
         <template #cell(shipmentStatus)="row">
-  <span :class="row.item.shipmentStatus === 1 ? 'text-success' : ''">
-    {{ row.item.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}
+  <span :class="row.item.shipmentStatus === 1 || 2 ? 'text-success' : ''">
+    {{ row.item.shipmentStatus === 1 || 2 ? "Enviado" : "Sin enviar" }}
   </span>
 </template>
 
