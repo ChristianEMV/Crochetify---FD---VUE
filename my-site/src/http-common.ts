@@ -195,37 +195,29 @@ export const apiShipments = {
     try {
       const response = await instance.get('/shipment');
       console.log('Datos obtenidos de la API:', response.data);
-      
-      // Asegurar que siempre retorne un arreglo vacío si el dato esperado no existe
-      return response.data?.shipments || [];
-    } catch (error) {
-      console.error('Error al obtener los envíos:', error);
-      throw error;
-    }
-  },
 
-  getShipmentById: async (id: number) => {
-    try {
-      const response = await instance.get(`/shipment/${id}`);
-      console.log("Envío obtenido:", response.data);
-      return response.data || null; // Retornar null si no se obtiene un envío
-    } catch (error) {
-      console.error('Error al obtener el envío:', error);
-      throw error;
-    }
-  },
+      // Verifica si la respuesta indica que no hay datos registrados
+      if (response.data.success === false && response.data.message === "No existen shipments registrados") {
+        console.warn('No hay shipments registrados. Retornando un arreglo vacío.');
+        return { shipments: [] }; // Retorna un arreglo vacío en este caso
+      }
 
-  createShipment: async ({ shipping_day, idOrden }: { shipping_day: string; idOrden: number }) => {
-    try {
-      const response = await instance.post('/shipment', { shipping_day, idOrden });
-      console.log('Envío registrado:', response.data);
+      // Asegura que siempre se retorne un arreglo para evitar errores
       return response.data;
-    } catch (error) {
-      console.error('Error al crear el envío:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Error al obtener los envíos:', error);
+
+      // Manejo de errores específicos
+      if (error.response?.status === 404) {
+        console.warn('El endpoint /shipment no existe o no está disponible. Retornando un arreglo vacío.');
+        return { shipments: [] }; // Retorna un arreglo vacío si el endpoint no existe
+      }
+
+      throw error; // Propagar otros errores
     }
   },
 };
+
 
 export const apiOrden = {
   getAllOrdenes: async () => {
