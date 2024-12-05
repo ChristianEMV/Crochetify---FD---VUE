@@ -6,6 +6,19 @@ const instance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+instance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`; // Agregar token al header
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 
 export const categoryApi = {
   getAllCategories: async () => {
