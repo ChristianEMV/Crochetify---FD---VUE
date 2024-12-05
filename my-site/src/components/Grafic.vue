@@ -1,5 +1,5 @@
 <template>
-  <div class="col-sm-12 stats">
+  <div class="col-sm-6 stats">
     <div class="row">
       <div class="col-sm-6">
         <div id="barChart" class="chart-container">

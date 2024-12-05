@@ -118,15 +118,7 @@
       <transition name="fade">
         <div v-if="showEditForm" class="mb-4 form-container">
           <b-form @submit.prevent="updateStock">
-            <b-form-group label="Producto" label-for="edit-product-select">
-              <b-form-select
-                id="edit-product-select"
-                v-model="editStockData.productId"
-                :options="products"
-                required
-                placeholder="Selecciona un producto"
-              ></b-form-select>
-            </b-form-group>
+
             <b-form-group label="Color" label-for="edit-color-picker">
               <input
                 type="color"
