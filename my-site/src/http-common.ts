@@ -216,6 +216,27 @@ export const apiShipments = {
       throw error; // Propagar otros errores
     }
   },
+  getShipmentById: async (id: number) => {
+    try {
+      const response = await instance.get(`/shipment/${id}`);
+      console.log("Envío obtenido:", response.data);
+      return response.data || null; // Retornar null si no se obtiene un envío
+    } catch (error) {
+      console.error('Error al obtener el envío:', error);
+      throw error;
+    }
+  },
+
+  createShipment: async ({ shipping_day, idOrden }: { shipping_day: string; idOrden: number }) => {
+    try {
+      const response = await instance.post('/shipment', { shipping_day, idOrden });
+      console.log('Envío registrado:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el envío:', error);
+      throw error;
+    }
+  },
 };
 
 
