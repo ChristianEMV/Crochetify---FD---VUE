@@ -148,45 +148,13 @@ export default defineComponent({
 
     const fetchOrders = async () => {
   try {
-    console.log("Haciendo solicitud para obtener órdenes...");
-    const responseOrders = await apiOrden.getAllOrdenes();
-    
-    // Asegúrate de que responseOrders tiene la estructura esperada
-    console.log("Órdenes obtenidas:", responseOrders);
-    
-    // Verificar si responseOrders existe y si tiene la propiedad 'response'
-    if (responseOrders && responseOrders.response && Array.isArray(responseOrders.response.pedidosUsuario)) {
-      const ordersData = responseOrders.response.pedidosUsuario;
-      console.log("Órdenes de pedidosUsuario:", ordersData);
-
-      // Obtener los envíos, etc.
-      const responseShipments = await apiShipments.getAllShipments();
-      const shipmentsData = responseShipments?.response?.shipments || [];
-      const shipmentMap = new Map(
-        shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
-      );
-
-      // Asignar las órdenes con los estados de envío
-      orders.value = ordersData.map((order: any) => ({
-        ...order,
-        shipmentStatus: shipmentMap.get(order.idOrden) || 0,
-      }));
-    } else {
-      console.error('Error: La respuesta de órdenes no tiene la estructura esperada.');
-      alert.show = true;
-      alert.message = "No se encontraron órdenes.";
-      alert.type = "danger";
-      orders.value = [];
-    }
+    const data = await apiOrden.getAllOrdenes(); // Call the API function and await the response
+    orders.value = data.response.orders; // Access the response correctly (assuming 'data' has 'response' property)
   } catch (error) {
-    console.error("Error al obtener las órdenes:", error);
-    alert.show = true;
-    alert.message = "Error al cargar las órdenes.";
-    alert.type = "danger";
+    console.error("Error al cargar los ordenes:", error);
     orders.value = [];
   }
 };
-
 
 
 
