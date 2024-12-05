@@ -33,26 +33,25 @@
         </template>
 
         <template #cell(shipmentStatus)="row">
-          <span
-            :class="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? 'text-success' : ''"
-          >
-            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? "Enviado" : "Sin enviar" }}
-          </span>
-        </template>
+  <span :class="row.item.shipmentStatus === 1 ? 'text-success' : ''">
+    {{ row.item.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}
+  </span>
+</template>
+
 
         <template #cell(actions)="row">
           <b-button
-            :disabled="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2"
+            :disabled="row.item.shipmentStatus === 1"
             variant="success"
             @click="showCreateShipmentModal(row.item)"
           >
-            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? "Enviado" : "Enviar" }}
+            {{ row.item.shipmentStatus === 1 ? "Enviado" : "Enviar" }}
           </b-button>
         </template>
       </b-table>
     </div>
 
-    <!-- Modal para crear un shipment -->
+    <!-- Modal para crear un shipment (enviar) -->
     <b-modal
       v-model="isCreateShipmentModalVisible"
       title="Crear Envío"
@@ -61,19 +60,23 @@
       <div>
         <b-form @submit.prevent="createShipment">
           <b-form-group label="Fecha de Envío">
-            <input
-              type="date"
-              v-model="newShipment.shipping_day"
-              :min="new Date().toISOString().split('T')[0]"
-              required
-            />
+            <b-form-group label="Fecha de Envío">
+  <input
+    type="date"
+    v-model="newShipment.shipping_day"
+    :min="new Date().toISOString().split('T')[0]"  
+    required
+  />
+</b-form-group>
+
           </b-form-group>
 
-          <b-button type="submit" variant="success">
+          <b-button type="submit" variant="success" >
             Crear Envío
           </b-button>
         </b-form>
       </div>
+      
     </b-modal>
 
     <!-- Modal de Detalles de la Orden -->
@@ -93,13 +96,15 @@
         </ul>
         <p>
           <strong>Estado del Envío:</strong>
-          {{ selectedOrder.shipmentStatus === 1 || selectedOrder.shipmentStatus === 2 ? "Enviado" : "No enviado" }}
+          {{ selectedOrder.shipmentStatus === 1 ? "Enviado" : "No enviado" }}
         </p>
       </div>
       <div v-else>
         <p>No hay detalles disponibles para esta orden.</p>
       </div>
+      
     </b-modal>
+
   </div>
 </template>
 
@@ -124,7 +129,10 @@ export default defineComponent({
       { key: "actions", label: "Acciones" },
     ];
     const isCreateShipmentModalVisible = ref(false);
-    const newShipment = reactive({
+    const newShipment = reactive<{
+      shipping_day: string;
+      idOrden: number | null;
+    }>({
       shipping_day: "",
       idOrden: null,
     });
@@ -136,41 +144,28 @@ export default defineComponent({
     };
 
     const fetchOrders = async () => {
-  try {
-    // Hacer la solicitud para obtener las órdenes
-    const responseOrders = await apiOrden.getAllOrdenes();
-    console.log('Órdenes obtenidas:', responseOrders); // Ver la respuesta inicial de las órdenes
+      try {
+        const responseOrders = await apiOrden.getAllOrdenes();
+        const responseShipments = await apiShipments.getAllShipments();
 
-    // Asegurarse de que la respuesta contiene la propiedad `response` y `pedidosUsuario`
-    const ordersData = responseOrders?.response?.pedidosUsuario || [];
-    console.log('Órdenes data:', ordersData); // Ver los datos de las órdenes antes de mapear
+        const ordersData = responseOrders.response?.pedidosUsuario || [];
+        const shipmentsData = responseShipments.response?.shipments || [];
 
-    // Obtener los envíos
-    const responseShipments = await apiShipments.getAllShipments();
-    console.log('Envíos obtenidos:', responseShipments); // Ver la respuesta de los envíos
+        const shipmentMap = new Map(
+          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+        );
 
-    // Mapear los datos de los envíos a un mapa (si hay envíos)
-    const shipmentsData = responseShipments?.response?.shipments || [];
-    const shipmentMap = new Map(
-      shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
-    );
-
-    // Asignar las órdenes mapeadas
-    orders.value = ordersData.map((order: any) => ({
-      ...order,
-      shipmentStatus: shipmentMap.get(order.idOrden) || 0,
-    }));
-    console.log('Órdenes después del mapeo:', orders.value); // Ver las órdenes después del mapeo
-
-  } catch (error) {
-    console.error("Error al cargar órdenes o envíos:", error);
-    alert.show = true;
-    alert.message = "Error al cargar las órdenes o envíos.";
-    alert.type = "danger";
-    orders.value = [];
-  }
-};
-
+        orders.value = ordersData.map((order: any) => ({
+          ...order,
+          shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+        }));
+      } catch (error) {
+        console.error("Error al cargar órdenes:", error);
+        alert.show = true;
+        alert.message = "Error al cargar las órdenes o envíos.";
+        alert.type = "danger";
+      }
+    };
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
@@ -182,28 +177,30 @@ export default defineComponent({
     };
 
     const createShipment = async () => {
-      if (newShipment.idOrden !== null && newShipment.shipping_day) {
-        try {
-          const response = await apiShipments.createShipment({
-            idOrden: newShipment.idOrden,
-            shipping_day: newShipment.shipping_day,
-          });
-          alert.show = true;
-          alert.message = response.message || "Envío creado exitosamente.";
-          alert.type = "success";
-          isCreateShipmentModalVisible.value = false;
-          fetchOrders();
-        } catch (error) {
-          alert.show = true;
-          alert.message = "Error al crear el envío.";
-          alert.type = "danger";
-        }
-      } else {
-        alert.show = true;
-        alert.message = "Por favor, complete todos los campos.";
-        alert.type = "danger";
-      }
-    };
+  // Asegurarse de que idOrden no sea null
+  if (newShipment.idOrden !== null && newShipment.shipping_day) {
+    try {
+      const response = await apiShipments.createShipment({
+        idOrden: newShipment.idOrden,  // Ahora idOrden es siempre un número
+        shipping_day: newShipment.shipping_day,
+      });
+      alert.show = true;
+      alert.message = response.message || "Envío creado exitosamente.";
+      alert.type = "success";
+      isCreateShipmentModalVisible.value = false;
+      fetchOrders();
+    } catch (error) {
+      alert.show = true;
+      alert.message = "Error al crear el envío.";
+      alert.type = "danger";
+    }
+  } else {
+    alert.show = true;
+    alert.message = "Por favor, complete todos los campos.";
+    alert.type = "danger";
+  }
+};
+
 
     const resetShipmentForm = () => {
       newShipment.shipping_day = "";
