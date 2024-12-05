@@ -137,30 +137,40 @@ export default defineComponent({
 
     const fetchOrders = async () => {
   try {
+    // Hacer la solicitud para obtener las órdenes
     const responseOrders = await apiOrden.getAllOrdenes();
-    console.log('Órdenes obtenidas:', responseOrders);
-    const responseShipments = await apiShipments.getAllShipments();
+    console.log('Órdenes obtenidas:', responseOrders); // Ver la respuesta inicial de las órdenes
 
-    // Asegúrate de que los envíos existan antes de procesarlos
-    const shipmentsData = responseShipments.response?.shipments || [];
+    // Asegurarse de que la respuesta contiene la propiedad `response` y `pedidosUsuario`
+    const ordersData = responseOrders?.response?.pedidosUsuario || [];
+    console.log('Órdenes data:', ordersData); // Ver los datos de las órdenes antes de mapear
+
+    // Obtener los envíos
+    const responseShipments = await apiShipments.getAllShipments();
+    console.log('Envíos obtenidos:', responseShipments); // Ver la respuesta de los envíos
+
+    // Mapear los datos de los envíos a un mapa (si hay envíos)
+    const shipmentsData = responseShipments?.response?.shipments || [];
     const shipmentMap = new Map(
       shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
     );
 
-    const ordersData = responseOrders.response?.pedidosUsuario || [];
+    // Asignar las órdenes mapeadas
     orders.value = ordersData.map((order: any) => ({
       ...order,
       shipmentStatus: shipmentMap.get(order.idOrden) || 0,
     }));
+    console.log('Órdenes después del mapeo:', orders.value); // Ver las órdenes después del mapeo
+
   } catch (error) {
     console.error("Error al cargar órdenes o envíos:", error);
     alert.show = true;
     alert.message = "Error al cargar las órdenes o envíos.";
     alert.type = "danger";
-    // Asegurarse de que orders no quede vacío si no hay envíos disponibles
-    orders.value = responseOrders.response?.pedidosUsuario || [];
+    orders.value = [];
   }
 };
+
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
