@@ -148,13 +148,22 @@ export default defineComponent({
 
     const fetchOrders = async () => {
   try {
-    const data = await apiOrden.getAllOrdenes(); // Call the API function and await the response
-    orders.value = data.response.orders; // Access the response correctly (assuming 'data' has 'response' property)
+    const data = await apiOrden.getAllOrdenes(); // Ensure the API call returns the expected structure
+    console.log("Órdenes obtenidas:", data); // Log the entire data object to inspect the structure
+
+    // Check if data and data.response exist before accessing orders
+    if (data && data.response && data.response.orders) {
+      orders.value = data.response.orders;
+    } else {
+      console.error("Estructura de datos inesperada:", data);
+      orders.value = [];
+    }
   } catch (error) {
     console.error("Error al cargar los ordenes:", error);
     orders.value = [];
   }
 };
+
 
 
 
