@@ -247,7 +247,7 @@ export const apiOrden = {
       console.log('Órdenes obtenidas:', response.data);
 
       // Asegurar que siempre retorne un arreglo vacío si el dato esperado no existe
-      return response.data?.pedidosUsuario || [];
+      return response.data?.pedidosUsuario ;
     } catch (error) {
       console.error('Error al obtener las órdenes:', error);
       throw error;
