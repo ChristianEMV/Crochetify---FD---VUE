@@ -150,9 +150,34 @@ export default defineComponent({
   try {
     console.log("Haciendo solicitud para obtener órdenes...");
     const responseOrders = await apiOrden.getAllOrdenes();
-    console.log("Respuesta de órdenes:", responseOrders); // Inspecciona la respuesta completa
+    
+    // Asegúrate de que responseOrders tiene la estructura esperada
+    console.log("Órdenes obtenidas:", responseOrders);
 
-    // El resto del código sigue igual
+    // Verifica si la respuesta tiene el campo `response` y luego accede a `pedidosUsuario`
+    if (responseOrders && responseOrders.response && responseOrders.response.pedidosUsuario) {
+      const ordersData = responseOrders.response.pedidosUsuario; // Aquí accedes correctamente
+      console.log("Órdenes de pedidosUsuario:", ordersData);
+
+      // Obtener los envíos, etc.
+      const responseShipments = await apiShipments.getAllShipments();
+      const shipmentsData = responseShipments?.response?.shipments || [];
+      const shipmentMap = new Map(
+        shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+      );
+
+      // Asignar las órdenes con los estados de envío
+      orders.value = ordersData.map((order: any) => ({
+        ...order,
+        shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+      }));
+    } else {
+      console.error('Error: La respuesta de órdenes no tiene la estructura esperada.');
+      alert.show = true;
+      alert.message = "No se encontraron órdenes.";
+      alert.type = "danger";
+      orders.value = [];
+    }
   } catch (error) {
     console.error("Error al obtener las órdenes:", error);
     alert.show = true;
