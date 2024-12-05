@@ -144,28 +144,29 @@ export default defineComponent({
     };
 
     const fetchOrders = async () => {
-      try {
-        const responseOrders = await apiOrden.getAllOrdenes();
-        const responseShipments = await apiShipments.getAllShipments();
+  try {
+    const responseOrders = await apiOrden.getAllOrdenes();
+    const responseShipments = await apiShipments.getAllShipments();
 
-        const ordersData = responseOrders.response?.pedidosUsuario || [];
-        const shipmentsData = responseShipments.response?.shipments || [];
+    const ordersData = responseOrders.response?.pedidosUsuario || [];
+    const shipmentsData = responseShipments.response?.shipments || []; // Asegura que sea un arreglo vacío si viene null
 
-        const shipmentMap = new Map(
-          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
-        );
+    const shipmentMap = new Map(
+      shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+    );
 
-        orders.value = ordersData.map((order: any) => ({
-          ...order,
-          shipmentStatus: shipmentMap.get(order.idOrden) || 0,
-        }));
-      } catch (error) {
-        console.error("Error al cargar órdenes:", error);
-        alert.show = true;
-        alert.message = "Error al cargar las órdenes o envíos.";
-        alert.type = "danger";
-      }
-    };
+    orders.value = ordersData.map((order: any) => ({
+      ...order,
+      shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+    }));
+  } catch (error) {
+    console.error("Error al cargar órdenes:", error);
+    alert.show = true;
+    alert.message = "Error al cargar las órdenes o envíos.";
+    alert.type = "danger";
+  }
+};
+
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
