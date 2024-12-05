@@ -298,6 +298,7 @@ export default defineComponent({
       images: string[];
     } | null>(null);
     const showModal = ref(false);
+    //hola mundo
     const stockImageUrl = ref("");
 
     const toggleSidebar = () => {
