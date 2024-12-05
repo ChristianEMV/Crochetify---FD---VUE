@@ -153,10 +153,10 @@ export default defineComponent({
     
     // Asegúrate de que responseOrders tiene la estructura esperada
     console.log("Órdenes obtenidas:", responseOrders);
-
-    // Verifica si la respuesta tiene el campo `response` y luego accede a `pedidosUsuario`
-    if (responseOrders && responseOrders.response && responseOrders.response.pedidosUsuario) {
-      const ordersData = responseOrders.response.pedidosUsuario; // Aquí accedes correctamente
+    
+    // Verificar si responseOrders existe y si tiene la propiedad 'response'
+    if (responseOrders && responseOrders.response && Array.isArray(responseOrders.response.pedidosUsuario)) {
+      const ordersData = responseOrders.response.pedidosUsuario;
       console.log("Órdenes de pedidosUsuario:", ordersData);
 
       // Obtener los envíos, etc.
@@ -186,6 +186,7 @@ export default defineComponent({
     orders.value = [];
   }
 };
+
 
 
 
