@@ -144,28 +144,50 @@ export default defineComponent({
     };
 
     const fetchOrders = async () => {
-      try {
-        const responseOrders = await apiOrden.getAllOrdenes();
-        const responseShipments = await apiShipments.getAllShipments();
+  try {
+    // Hacer la solicitud para obtener las órdenes
+    const responseOrders = await apiOrden.getAllOrdenes();
+    
+    // Verificar si la respuesta es válida
+    console.log('Respuesta de órdenes:', responseOrders); // Inspecciona la respuesta completa
 
-        const ordersData = responseOrders.response?.pedidosUsuario || [];
-        const shipmentsData = responseShipments.response?.shipments || [];
+    // Comprobamos si `responseOrders` y `responseOrders.response` existen
+    if (responseOrders && responseOrders.response && responseOrders.response.pedidosUsuario) {
+      const ordersData = responseOrders.response.pedidosUsuario;
+      console.log('Órdenes obtenidas:', ordersData); // Ver las órdenes obtenidas
 
-        const shipmentMap = new Map(
-          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
-        );
+      // Obtener los envíos
+      const responseShipments = await apiShipments.getAllShipments();
+      console.log('Respuesta de envíos:', responseShipments); // Ver la respuesta completa de envíos
 
-        orders.value = ordersData.map((order: any) => ({
-          ...order,
-          shipmentStatus: shipmentMap.get(order.idOrden) || 0,
-        }));
-      } catch (error) {
-        console.error("Error al cargar órdenes:", error);
-        alert.show = true;
-        alert.message = "Error al cargar las órdenes o envíos.";
-        alert.type = "danger";
-      }
-    };
+      // Asegurarse de que los envíos existen
+      const shipmentsData = responseShipments?.response?.shipments || [];
+      const shipmentMap = new Map(
+        shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+      );
+
+      // Asignar las órdenes mapeadas
+      orders.value = ordersData.map((order: any) => ({
+        ...order,
+        shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+      }));
+      console.log('Órdenes después del mapeo:', orders.value); // Ver las órdenes mapeadas
+    } else {
+      console.error('Error: La respuesta de órdenes no tiene la estructura esperada.');
+      alert.show = true;
+      alert.message = "No se encontraron órdenes.";
+      alert.type = "danger";
+      orders.value = [];
+    }
+  } catch (error) {
+    console.error("Error al cargar órdenes o envíos:", error);
+    alert.show = true;
+    alert.message = "Error al cargar las órdenes o envíos.";
+    alert.type = "danger";
+    orders.value = [];
+  }
+};
+
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
