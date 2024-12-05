@@ -151,9 +151,9 @@ export default defineComponent({
     const data = await apiOrden.getAllOrdenes(); // Ensure the API call returns the expected structure
     console.log("Órdenes obtenidas:", data); // Log the entire data object to inspect the structure
 
-    // Check if data and data.response exist before accessing orders
-    if (data && data.response && data.response.orders) {
-      orders.value = data.response.orders;
+    // Check if data and data.response exist before accessing pedidosUsuario
+    if (data && data.response && data.response.pedidosUsuario) {
+      orders.value = data.response.pedidosUsuario;
     } else {
       console.error("Estructura de datos inesperada:", data);
       orders.value = [];
