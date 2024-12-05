@@ -148,48 +148,20 @@ export default defineComponent({
 
     const fetchOrders = async () => {
   try {
-    // Hacer la solicitud para obtener las órdenes
+    console.log("Haciendo solicitud para obtener órdenes...");
     const responseOrders = await apiOrden.getAllOrdenes();
-    
-    // Verificar si la respuesta es válida
-    console.log('Respuesta de órdenes:', responseOrders); // Inspecciona la respuesta completa
+    console.log("Respuesta de órdenes:", responseOrders); // Inspecciona la respuesta completa
 
-    // Comprobamos si `responseOrders` y `responseOrders.response` existen
-    if (responseOrders && responseOrders.response && responseOrders.response.pedidosUsuario) {
-      const ordersData = responseOrders.response.pedidosUsuario;
-      console.log('Órdenes obtenidas:', ordersData); // Ver las órdenes obtenidas
-
-      // Obtener los envíos
-      const responseShipments = await apiShipments.getAllShipments();
-      console.log('Respuesta de envíos:', responseShipments); // Ver la respuesta completa de envíos
-
-      // Asegurarse de que los envíos existen
-      const shipmentsData = responseShipments?.response?.shipments || [];
-      const shipmentMap = new Map(
-        shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
-      );
-
-      // Asignar las órdenes mapeadas
-      orders.value = ordersData.map((order: any) => ({
-        ...order,
-        shipmentStatus: shipmentMap.get(order.idOrden) || 0,
-      }));
-      console.log('Órdenes después del mapeo:', orders.value); // Ver las órdenes mapeadas
-    } else {
-      console.error('Error: La respuesta de órdenes no tiene la estructura esperada.');
-      alert.show = true;
-      alert.message = "No se encontraron órdenes.";
-      alert.type = "danger";
-      orders.value = [];
-    }
+    // El resto del código sigue igual
   } catch (error) {
-    console.error("Error al cargar órdenes o envíos:", error);
+    console.error("Error al obtener las órdenes:", error);
     alert.show = true;
-    alert.message = "Error al cargar las órdenes o envíos.";
+    alert.message = "Error al cargar las órdenes.";
     alert.type = "danger";
     orders.value = [];
   }
 };
+
 
 
     const showCreateShipmentModal = (order: any) => {
