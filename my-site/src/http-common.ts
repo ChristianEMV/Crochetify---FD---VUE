@@ -232,7 +232,7 @@ export const apiShipments = {
       const response = await instance.post('/shipment', { shipping_day, idOrden });
       console.log('Envío registrado:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {  // Se usa `any` aquí
       if (error.response) {
         console.error('Error al crear el envío:', error.response.data);
         // Puedes agregar más detalles de la respuesta
@@ -243,6 +243,7 @@ export const apiShipments = {
       }
     }
   },
+  
   
 };
 
