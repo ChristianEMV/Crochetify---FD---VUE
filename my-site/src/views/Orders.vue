@@ -173,29 +173,32 @@ export default defineComponent({
       }
     };
 
-    createShipment: async ({ shipping_day, idOrden }: { shipping_day: string; idOrden: number }) => {
-  try {
-    // Verifica que los parámetros estén definidos
-    if (!shipping_day || !idOrden) {
-      throw new Error('Faltan parámetros: shipping_day o idOrden');
+    const createShipment = async () => {
+  if (newShipment.idOrden !== null && newShipment.shipping_day) {
+    try {
+      const response = await apiShipments.createShipment({
+        idOrden: newShipment.idOrden, 
+        shipping_day: newShipment.shipping_day,
+      });
+      alert.show = true;
+      alert.message = response.message || "Envío creado exitosamente.";
+      alert.type = "success";
+      isCreateShipmentModalVisible.value = false;
+      fetchOrders();
+    } catch (error) {
+      console.error("Error al crear el envío:", error);
+      alert.show = true;
+      alert.message = "Error al crear el envío.";
+      alert.type = "danger";
     }
-
-    const response = await instance.post('/shipment', { shipping_day, idOrden });
-    console.log('Envío registrado:', response.data);
-    return response.data;
-  } catch (error: any) {  // Aquí podemos usar `any` ya que tenemos un manejo específico
-    console.error('Error al crear el envío:', error.response?.data || error.message);
-
-    // Si el error es de tipo AxiosError, podemos acceder a response.data
-    if (error.response?.data?.message) {
-      throw new Error(`Error de la API: ${error.response.data.message}`);
-    }
-    
-    // Para otros errores no controlados
-    throw new Error('Error desconocido al crear el envío');
+  } else {
+    alert.show = true;
+    alert.message = "Por favor, complete todos los campos.";
+    alert.type = "danger";
   }
-},
+ 
 
+};
 
 
 
