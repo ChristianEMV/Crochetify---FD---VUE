@@ -233,10 +233,17 @@ export const apiShipments = {
       console.log('Envío registrado:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error al crear el envío:', error);
-      throw error;
+      if (error.response) {
+        console.error('Error al crear el envío:', error.response.data);
+        // Puedes agregar más detalles de la respuesta
+        throw new Error(`Error: ${error.response.data?.message || 'Error desconocido'}`);
+      } else {
+        console.error('Error de red o de configuración:', error.message);
+        throw error;
+      }
     }
   },
+  
 };
 
 
