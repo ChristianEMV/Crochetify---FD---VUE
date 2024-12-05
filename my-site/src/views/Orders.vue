@@ -27,9 +27,12 @@
         </template>
 
         <template #cell(ordenProducts)="row">
-          {{ row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
-            ? row.item.ordenProducts.map((product: any) => product.product?.name || 'Producto desconocido').join(', ')
-            : 'No hay productos' }}
+          {{ row.item.ordenProducts && Array.isArray(row.item.ordenProducts) 
+  ? row.item.ordenProducts.map((product: any) => 
+      product.product ? product.product.name : 'Producto desconocido'
+    ).join(', ') 
+  : 'No hay productos' }}
+
         </template>
 
         <template #cell(shipmentStatus)="row">
