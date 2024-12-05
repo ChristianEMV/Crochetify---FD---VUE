@@ -196,6 +196,8 @@ export default defineComponent({
     alert.message = "Por favor, complete todos los campos.";
     alert.type = "danger";
   }
+  console.log("Datos a enviar:", { shipping_day, idOrden });
+
 };
 
 
