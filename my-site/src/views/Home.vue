@@ -29,16 +29,18 @@
       </div>
     </div>
 
-    <Grafic />
+    <Grafic />  
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
-import { userApi, apiShipments, apiOrden } from "@/http-common";
+import { userApi, apiShipments, apiOrden } from "../http-common";
+import authService from "../authService";
 
 export default defineComponent({
   name: "Dashboard",
@@ -48,11 +50,12 @@ export default defineComponent({
     const isLoading = ref(true);
     const totalUsers = ref(0);
     const shipments = ref([]);
-    const pedidosUsuario = ref([]);  // Nueva variable para almacenar las órdenes
+    const pedidosUsuario = ref([]); 
     const pendingOrders = ref(0);
     const totalSelling = ref(0);
     const totalErnings = ref(0);
-
+    const router = useRouter();
+    
     const cards = ref([
       {
         id: "active-users",
@@ -83,7 +86,13 @@ export default defineComponent({
         iconClass: "fas fa-dollar-sign icon-circle-earnings",
       },
     ]);
-
+    
+    const checkAuthentication = () => {
+      if (!authService.isAuthenticated()) {
+        router.push("/login"); 
+      }
+    };
+    
     const fetchUsers = async () => {
       try {
         const data = await userApi.getAllUsers();
@@ -102,20 +111,17 @@ export default defineComponent({
         shipments.value = Array.isArray(data.response.shipments)
           ? data.response.shipments
           : [];
-        
-        // Filtrar los pedidos por estado
+
         pendingOrders.value = shipments.value.filter(
           (item: any) => item.status === 1
         ).length;
-        
+
         totalSelling.value = shipments.value.filter(
           (item: any) => item.status === 2
         ).length;
 
-        // Actualizar los valores de las tarjetas
         cards.value[1].value = totalSelling.value.toString();
         cards.value[2].value = pendingOrders.value.toString();
-
       } catch (error) {
         console.error("Error al cargar los envíos:", error);
       }
@@ -123,17 +129,16 @@ export default defineComponent({
 
     const fetchOrders = async () => {
       try {
-        const data = await apiOrden.getAllOrdenes();  // Llamada a la API para obtener las órdenes
+        const data = await apiOrden.getAllOrdenes();
         pedidosUsuario.value = Array.isArray(data.response.pedidosUsuario)
           ? data.response.pedidosUsuario
           : [];
 
-        // Calcular totalErnings con la suma de item.total (de la orden)
         totalErnings.value = pedidosUsuario.value.reduce(
           (sum: number, item: any) => sum + (item.total || 0),
           0
         );
-        cards.value[3].value = `$${totalErnings.value.toFixed(2)}`; // Formatear ganancias como moneda
+        cards.value[3].value = `$${totalErnings.value.toFixed(2)}`;
       } catch (error) {
         console.error("Error al cargar las órdenes:", error);
       }
@@ -143,10 +148,16 @@ export default defineComponent({
       isSidebarOpen.value = !isSidebarOpen.value;
     };
 
+    const logout = () => {
+      authService.logout();
+      router.push("/login");
+    };
+    
     onMounted(() => {
+      checkAuthentication();
       fetchUsers();
       fetchShipments();
-      fetchOrders();  // Asegúrate de llamar a fetchOrders aquí
+      fetchOrders();
       isLoading.value = false;
     });
 
@@ -155,6 +166,7 @@ export default defineComponent({
       cards,
       toggleSidebar,
       isLoading,
+      logout,
     };
   },
 });

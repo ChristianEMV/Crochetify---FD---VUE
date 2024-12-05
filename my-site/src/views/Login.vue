@@ -69,8 +69,8 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from "vue";
-import axios from "../http-common";
 import { useRouter } from "vue-router";
+import authService from "../authService"; 
 import logo from "../assets/CrochetifyLogo.png"; 
 import illustration from "../assets/login-illustration.jpeg"; 
 
@@ -88,39 +88,25 @@ export default defineComponent({
     const router = useRouter();
 
     const onSubmit = async () => {
-      try {
+      try {        
         if (!form.email || !form.password) {
           errorMessage.value = "Por favor, completa todos los campos";
           return;
         }
 //login
         isLoading.value = true;
-
-        const response = await axios.post(
-          "http://100.27.71.83:8087/api/crochetify/login",
-          {
-            email: form.email,
-            password: form.password,
-          }
-        );
-
-        if (response.data.success && response.data.response.token) {
-          localStorage.setItem("authToken", response.data.response.token);
-
-          console.log("Login exitoso:", response.data.message);
-
-          setTimeout(() => {
-            router.push("/home");
-          }, 1000);
-        } else {
-          errorMessage.value =
-            response.data.message ||
-            "Error en la autenticación. Por favor, inténtalo de nuevo.";
-        }
+        
+        const message = await authService.login(form.email, form.password);
+        
+        console.log(message);
+                
+        setTimeout(() => {
+          router.push("/home");
+        }, 1000);
       } catch (error) {
         console.error("Error en el login:", error);
         errorMessage.value =
-          "Credenciales inválidas o error en el servidor";
+           "Error al iniciar sesion! :("; 
       } finally {
         isLoading.value = false;
       }
@@ -131,12 +117,13 @@ export default defineComponent({
       errorMessage,
       isLoading,
       onSubmit,
-      logo, // Asegúrate de exponer la variable para la plantilla
-      illustration, // Asegúrate de exponer la variable para la plantilla
+      logo,
+      illustration,
     };
   },
 });
 </script>
+
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");

@@ -5,32 +5,47 @@ import Home from "../views/Home.vue";
 import Categories from "../views/Categories.vue";
 import Products from "../views/Products.vue";
 import Stock from "../views/Stock.vue";
-//import Sales from "../views/Sales.vue";
 import Orders from "../views/Orders.vue";
 import Shipments from "../views/Shipments.vue";
-//import Error from "../views/Error.vue";
 import Users from "../views/Users.vue";
 import FullShipments from "@/views/FullShipments.vue";
+import authService from "../authService"; 
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", name: "login", component: Login },
-  { path: "/home", name: "home", component: Home },
-  { path: "/users", name:"users", component: Users},
-  { path: "/categories", name: "categories", component: Categories },
-  { path: "/products", name: "products", component: Products },
-  { path: "/stock", name: "stock", component: Stock },
-  {path: "/fullshipments", name: "fullshipments", component: FullShipments},
-  //{path: "/fullusers", name: "fullusers", component: FullUsers},
-  //{path: "/fullorders", name: "fullorders", component: FullOrders},
-  //{ path: "/sales", name: "sales", component: Sales },
-  { path: "/orders", name: "orders", component: Orders },
-  { path: "/shipments", name: "shipments", component: Shipments },
-  //{ path: '/:pathMatch(.*)*', redirect: '/Error' }, // Para redirigir a login si la ruta no existe
+  { path: "/login", name: "login", component: Login },
+  { path: "/home", name: "home", component: Home, meta: { requiresAdmin: true } },
+  { path: "/categories", name: "categories", component: Categories, meta: { requiresAdmin: true } },
+  { path: "/products", name: "products", component: Products, meta: { requiresAdmin: true } },
+  { path: "/stock", name: "stock", component: Stock, meta: { requiresAdmin: true } },
+  { path: "/orders", name: "orders", component: Orders, meta: { requiresAdmin: true } },
+  { path: "/shipments", name: "shipments", component: Shipments, meta: { requiresAdmin: true } },
+  { path: "/fullshipments", name: "fullshipments", component: FullShipments, meta: { requiresAdmin: true } },
+  { path: "/users", name: "users", component: Users, meta: { requiresAdmin: true } }, // Ruta protegida solo para admin
 ];
+
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
 });
 
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = authService.isAuthenticated(); 
+  const isAdmin = authService.isAdmin(); 
+
+  if (to.meta.requiresAdmin && !isAuthenticated) {
+    next({ name: 'login' });
+  } 
+  
+  else if (to.meta.requiresAdmin && !isAdmin) {
+    next({ name: 'home' }); 
+  } 
+  
+  else {
+    next(); 
+  }
+});
+
 export default router;
+
