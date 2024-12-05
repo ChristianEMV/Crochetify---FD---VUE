@@ -29,33 +29,41 @@
       </div>
     </div>
 
-    <Grafic />  
+    <div class="row">
+      <div class="col-md-6">
+        <Grafic />
+      </div>
+      <div class="col-md-6">
+        <Masvendidos />
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch } from "vue";
+import { defineComponent, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
+import Masvendidos from "../components/Masvendidos.vue";
 import { userApi, apiShipments, apiOrden } from "../http-common";
 import authService from "../authService";
 
 export default defineComponent({
   name: "Dashboard",
-  components: { Navbar, Sidebar, Grafic },
+  components: { Navbar, Sidebar, Grafic, Masvendidos },
   setup() {
     const isSidebarOpen = ref(false);
     const isLoading = ref(true);
     const totalUsers = ref(0);
     const shipments = ref([]);
-    const pedidosUsuario = ref([]); 
+    const pedidosUsuario = ref([]);
     const pendingOrders = ref(0);
     const totalSelling = ref(0);
     const totalErnings = ref(0);
     const router = useRouter();
-    
+
     const cards = ref([
       {
         id: "active-users",
@@ -86,13 +94,13 @@ export default defineComponent({
         iconClass: "fas fa-dollar-sign icon-circle-earnings",
       },
     ]);
-    
+
     const checkAuthentication = () => {
       if (!authService.isAuthenticated()) {
-        router.push("/login"); 
+        router.push("/login");
       }
     };
-    
+
     const fetchUsers = async () => {
       try {
         const data = await userApi.getAllUsers();
@@ -112,13 +120,9 @@ export default defineComponent({
           ? data.response.shipments
           : [];
 
-        pendingOrders.value = shipments.value.filter(
-          (item: any) => item.status === 1
-        ).length;
+        pendingOrders.value = shipments.value.filter((item: any) => item.status === 1).length;
 
-        totalSelling.value = shipments.value.filter(
-          (item: any) => item.status === 2
-        ).length;
+        totalSelling.value = shipments.value.filter((item: any) => item.status === 2).length;
 
         cards.value[1].value = totalSelling.value.toString();
         cards.value[2].value = pendingOrders.value.toString();
@@ -139,6 +143,7 @@ export default defineComponent({
           0
         );
         cards.value[3].value = `$${totalErnings.value.toFixed(2)}`;
+
       } catch (error) {
         console.error("Error al cargar las órdenes:", error);
       }
@@ -152,7 +157,7 @@ export default defineComponent({
       authService.logout();
       router.push("/login");
     };
-    
+
     onMounted(() => {
       checkAuthentication();
       fetchUsers();
@@ -283,6 +288,14 @@ h1, h6, p {
   position: absolute;
   top: 20px;
   right: 20px;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.col-md-6 {
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {

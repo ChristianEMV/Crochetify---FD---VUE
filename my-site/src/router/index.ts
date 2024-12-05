@@ -12,6 +12,7 @@ import FullShipments from "@/views/FullShipments.vue";
 import authService from "../authService"; 
 
 const routes: Array<RouteRecordRaw> = [
+  { path: "/", redirect: "login"},
   { path: "/", name: "login", component: Login },
   { path: "/login", name: "login", component: Login },
   { path: "/home", name: "home", component: Home, meta: { requiresAdmin: true } },
