@@ -29,10 +29,7 @@
       </div>
     </div>
 
-    <Grafic />
-    <div class="logout-container">
-      <button @click="logout" class="btn btn-danger">Cerrar sesión</button>
-    </div>
+    <Grafic />  
   </div>
 </template>
 

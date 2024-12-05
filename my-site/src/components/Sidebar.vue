@@ -33,11 +33,11 @@
 
       <hr class="divider" />
 
-    <div class="logout-container">
-      <b-button variant="danger" @click="logout" class="logout-button">
-        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-      </b-button>
-    </div>
+      <div class="logout-container">
+        <b-button variant="danger" @click="logout" class="logout-button">
+          <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+        </b-button>
+      </div>
 
     </ul>
   </aside>
@@ -85,7 +85,7 @@ export default defineComponent({
     const logout = () => {
       localStorage.removeItem("authToken");
 
-      router.push("/");
+      router.push("/login");
     };
 
     return {
