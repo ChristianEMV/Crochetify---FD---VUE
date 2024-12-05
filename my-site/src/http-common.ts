@@ -245,8 +245,7 @@ export const apiShipments = {
       console.error('Error al crear el envío:', error.response?.data || error.message);
       throw error;
     }
-  };
-  
+  }  
   
   
 };
