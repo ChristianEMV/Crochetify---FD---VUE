@@ -41,10 +41,11 @@ import Sidebar from "../components/Sidebar.vue";
 import Grafic from "../components/Grafic.vue";
 import { userApi, apiShipments, apiOrden } from "../http-common";
 import authService from "../authService";
+import Masvendidos from "../components/Masvendidos.vue";
 
 export default defineComponent({
   name: "Dashboard",
-  components: { Navbar, Sidebar, Grafic },
+  components: { Navbar, Sidebar, Grafic, Masvendidos },
   setup() {
     const isSidebarOpen = ref(false);
     const isLoading = ref(true);
@@ -171,7 +172,6 @@ export default defineComponent({
   },
 });
 </script>
-
 <style scoped>
 .header {
   width: 100%;
