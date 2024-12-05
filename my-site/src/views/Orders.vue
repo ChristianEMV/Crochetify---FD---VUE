@@ -138,30 +138,29 @@ export default defineComponent({
     const fetchOrders = async () => {
   try {
     const responseOrders = await apiOrden.getAllOrdenes();
+    console.log('Órdenes obtenidas:', responseOrders);
     const responseShipments = await apiShipments.getAllShipments();
 
-    const ordersData = responseOrders.response?.pedidosUsuario || [];  
-    const shipmentsData = responseShipments.response?.shipments || [];  
-
-    console.log('Orders:', ordersData);  // Verifica que los datos estén llegando
-
+    // Asegúrate de que los envíos existan antes de procesarlos
+    const shipmentsData = responseShipments.response?.shipments || [];
     const shipmentMap = new Map(
       shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
     );
 
+    const ordersData = responseOrders.response?.pedidosUsuario || [];
     orders.value = ordersData.map((order: any) => ({
       ...order,
       shipmentStatus: shipmentMap.get(order.idOrden) || 0,
     }));
   } catch (error) {
-    console.error("Error al cargar órdenes:", error);
+    console.error("Error al cargar órdenes o envíos:", error);
     alert.show = true;
     alert.message = "Error al cargar las órdenes o envíos.";
     alert.type = "danger";
+    // Asegurarse de que orders no quede vacío si no hay envíos disponibles
+    orders.value = responseOrders.response?.pedidosUsuario || [];
   }
 };
-
-
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
