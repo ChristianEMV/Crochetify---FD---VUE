@@ -229,26 +229,23 @@ export const apiShipments = {
 
   createShipment: async ({ shipping_day, idOrden }: { shipping_day: string; idOrden: number }) => {
     try {
-      // Verifica que los parámetros estén definidos
-      if (!shipping_day || !idOrden) {
-        throw new Error('Faltan parámetros: shipping_day o idOrden');
+      // Validar formato de shipping_day
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(shipping_day)) {
+        throw new Error('Formato de fecha inválido. Debe ser YYYY-MM-DD');
+      }
+  
+      if (!Number.isInteger(idOrden) || idOrden <= 0) {
+        throw new Error('El idOrden debe ser un número entero positivo');
       }
   
       const response = await instance.post('/shipment', { shipping_day, idOrden });
       console.log('Envío registrado:', response.data);
       return response.data;
-    } catch (error: any) {  // Aquí podemos usar `any` ya que tenemos un manejo específico
+    } catch (error: any) {
       console.error('Error al crear el envío:', error.response?.data || error.message);
-  
-      // Si el error es de tipo AxiosError, podemos acceder a response.data
-      if (error.response?.data?.message) {
-        throw new Error(`Error de la API: ${error.response.data.message}`);
-      }
-      
-      // Para otros errores no controlados
-      throw new Error('Error desconocido al crear el envío');
+      throw error;
     }
-  },
+  };
   
   
   
