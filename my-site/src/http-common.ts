@@ -245,14 +245,14 @@ export const apiOrden = {
     try {
       const response = await instance.get('/orden');
       console.log('Órdenes obtenidas:', response.data);
-
-      // Asegurar que siempre retorne un arreglo vacío si el dato esperado no existe
-      return response.data?.pedidosUsuario ;
+  
+      return response.data;  // Return the full response, not just pedidosUsuario
     } catch (error) {
       console.error('Error al obtener las órdenes:', error);
       throw error;
     }
   },
+  
 
   getOrdenById: async (id: number) => {
     try {

@@ -148,11 +148,10 @@ export default defineComponent({
 
     const fetchOrders = async () => {
   try {
-    // Await the result directly
     const data = await apiOrden.getAllOrdenes();
-    console.log("Órdenes obtenidas directamente después de la llamada:", data); // Log right after API call
+    console.log("Órdenes obtenidas:", data); // Log the entire response
 
-    // Validate the structure of the data
+    // Now you can safely access the orders under 'response.pedidosUsuario'
     if (data && data.response && Array.isArray(data.response.pedidosUsuario)) {
       orders.value = data.response.pedidosUsuario;
     } else {
@@ -164,8 +163,6 @@ export default defineComponent({
     orders.value = [];
   }
 };
-
-
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
