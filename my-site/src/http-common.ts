@@ -190,12 +190,14 @@ export const userApi = {
   }
 };
 
-export const apiShipments = { 
+export const apiShipments = {  
   getAllShipments: async () => {
     try {
       const response = await instance.get('/shipment');
       console.log('Datos obtenidos de la API:', response.data);
-      return response.data;
+      
+      // Asegurar que siempre retorne un arreglo vacío si el dato esperado no existe
+      return response.data?.shipments || [];
     } catch (error) {
       console.error('Error al obtener los envíos:', error);
       throw error;
@@ -206,7 +208,7 @@ export const apiShipments = {
     try {
       const response = await instance.get(`/shipment/${id}`);
       console.log("Envío obtenido:", response.data);
-      return response.data;
+      return response.data || null; // Retornar null si no se obtiene un envío
     } catch (error) {
       console.error('Error al obtener el envío:', error);
       throw error;
@@ -223,7 +225,6 @@ export const apiShipments = {
       throw error;
     }
   },
-
 };
 
 export const apiOrden = {
@@ -231,7 +232,9 @@ export const apiOrden = {
     try {
       const response = await instance.get('/orden');
       console.log('Órdenes obtenidas:', response.data);
-      return response.data;
+
+      // Asegurar que siempre retorne un arreglo vacío si el dato esperado no existe
+      return response.data?.pedidosUsuario || [];
     } catch (error) {
       console.error('Error al obtener las órdenes:', error);
       throw error;
@@ -242,12 +245,13 @@ export const apiOrden = {
     try {
       const response = await instance.get(`/orden/${id}`);
       console.log('Orden obtenida:', response.data);
-      return response.data;
+      return response.data || null; // Retornar null si no se obtiene una orden
     } catch (error) {
       console.error('Error al obtener la orden:', error);
       throw error;
     }
   },
 };
+
 
 export default instance;
