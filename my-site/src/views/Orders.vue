@@ -174,11 +174,10 @@ export default defineComponent({
     };
 
     const createShipment = async () => {
-  // Asegurarse de que idOrden no sea null
   if (newShipment.idOrden !== null && newShipment.shipping_day) {
     try {
       const response = await apiShipments.createShipment({
-        idOrden: newShipment.idOrden,  // Ahora idOrden es siempre un número
+        idOrden: newShipment.idOrden, 
         shipping_day: newShipment.shipping_day,
       });
       alert.show = true;
@@ -187,6 +186,7 @@ export default defineComponent({
       isCreateShipmentModalVisible.value = false;
       fetchOrders();
     } catch (error) {
+      console.error("Error al crear el envío:", error);
       alert.show = true;
       alert.message = "Error al crear el envío.";
       alert.type = "danger";
@@ -197,6 +197,7 @@ export default defineComponent({
     alert.type = "danger";
   }
 };
+
 
 
     const resetShipmentForm = () => {
