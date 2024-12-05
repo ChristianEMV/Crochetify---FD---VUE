@@ -152,6 +152,7 @@ export default defineComponent({
           shipmentStatus: shipmentMap.get(order.idOrden) || 0,
         }));
       } catch (error) {
+        console.log('debug')
         console.error("Error al cargar órdenes:", error);
         alert.show = true;
         alert.message = "Error al cargar las órdenes o envíos.";
