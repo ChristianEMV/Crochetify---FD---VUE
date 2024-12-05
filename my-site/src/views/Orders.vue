@@ -148,11 +148,11 @@ export default defineComponent({
 
     const fetchOrders = async () => {
   try {
-    // Ensure that we correctly await the API call and capture the response.
+    // Await the result directly
     const data = await apiOrden.getAllOrdenes();
-    console.log("Órdenes obtenidas:", data); // Inspect the entire data structure
+    console.log("Órdenes obtenidas directamente después de la llamada:", data); // Log right after API call
 
-    // Make sure the response and 'pedidosUsuario' array exist.
+    // Validate the structure of the data
     if (data && data.response && Array.isArray(data.response.pedidosUsuario)) {
       orders.value = data.response.pedidosUsuario;
     } else {
@@ -164,6 +164,7 @@ export default defineComponent({
     orders.value = [];
   }
 };
+
 
 
     const showCreateShipmentModal = (order: any) => {
