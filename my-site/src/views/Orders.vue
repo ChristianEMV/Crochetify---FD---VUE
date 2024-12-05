@@ -33,19 +33,19 @@
         </template>
 
         <template #cell(shipmentStatus)="row">
-  <span :class="row.item.shipmentStatus === 1 ? 'text-success' : ''">
-    {{ row.item.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}
+  <span :class="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? 'text-success' : ''">
+    {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? "Enviado" : "Sin enviar" }}
   </span>
 </template>
 
 
         <template #cell(actions)="row">
           <b-button
-            :disabled="row.item.shipmentStatus === 1"
+            :disabled="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2"
             variant="success"
             @click="showCreateShipmentModal(row.item)"
           >
-            {{ row.item.shipmentStatus === 1 ? "Enviado" : "Enviar" }}
+            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2? "Enviado" : "Enviar" }}
           </b-button>
         </template>
       </b-table>
@@ -96,7 +96,7 @@
         </ul>
         <p>
           <strong>Estado del Envío:</strong>
-          {{ selectedOrder.shipmentStatus === 1 ? "Enviado" : "No enviado" }}
+          {{ selectedOrder.shipmentStatus === 1 ||  selectedOrder.shipmentStatus === 2? "Enviado" : "No enviado" }}
         </p>
       </div>
       <div v-else>

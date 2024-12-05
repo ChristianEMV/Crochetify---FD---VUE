@@ -93,7 +93,7 @@ export default defineComponent({
           errorMessage.value = "Por favor, completa todos los campos";
           return;
         }
-
+//login
         isLoading.value = true;
         
         const message = await authService.login(form.email, form.password);
