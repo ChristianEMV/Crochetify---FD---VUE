@@ -140,8 +140,10 @@ export default defineComponent({
     const responseOrders = await apiOrden.getAllOrdenes();
     const responseShipments = await apiShipments.getAllShipments();
 
-    const ordersData = responseOrders.response?.pedidosUsuario || [];  // Accediendo correctamente a los pedidos
-    const shipmentsData = responseShipments.response?.shipments || [];  // Accediendo correctamente a los envíos
+    const ordersData = responseOrders.response?.pedidosUsuario || [];  
+    const shipmentsData = responseShipments.response?.shipments || [];  
+
+    console.log('Orders:', ordersData);  // Verifica que los datos estén llegando
 
     const shipmentMap = new Map(
       shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
@@ -158,6 +160,7 @@ export default defineComponent({
     alert.type = "danger";
   }
 };
+
 
 
     const showCreateShipmentModal = (order: any) => {
