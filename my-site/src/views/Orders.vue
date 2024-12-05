@@ -64,12 +64,14 @@
         <b-form @submit.prevent="createShipment">
           <b-form-group label="Fecha de Envío">
             <b-form-group label="Fecha de Envío">
-  <input
-    type="date"
-    v-model="newShipment.shipping_day"
-    :min="new Date().toISOString().split('T')[0]"  
-    required
-  />
+              <input
+  type="date"
+  v-model="newShipment.shipping_day"
+  :min="new Date().toISOString().split('T')[0]"  
+  @input="console.log('Fecha de envío:', newShipment.shipping_day)"
+  required
+/>
+
 </b-form-group>
 
           </b-form-group>
@@ -176,8 +178,9 @@ export default defineComponent({
     const createShipment = async () => {
   if (newShipment.idOrden !== null && newShipment.shipping_day) {
     try {
+      console.log('Datos enviados al backend:', newShipment);
       const response = await apiShipments.createShipment({
-        idOrden: newShipment.idOrden, 
+        idOrden: newShipment.idOrden,
         shipping_day: newShipment.shipping_day,
       });
       alert.show = true;
@@ -196,9 +199,8 @@ export default defineComponent({
     alert.message = "Por favor, complete todos los campos.";
     alert.type = "danger";
   }
- 
-
 };
+
 
 
 
