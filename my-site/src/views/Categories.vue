@@ -5,6 +5,7 @@
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-layer-group"></i> Categorías</h3>
+        
         <h6>Gestión de las categoría</h6>
       </div>
     </div>
@@ -154,21 +155,11 @@ export default defineComponent({
       try {
         await categoryApi.createCategory({ name: newCategoryData.name });
         await fetchCategories();
-        alert.message = "Categoría creada con éxito";
-        alert.type = "success";
-        alert.show = true;
-        setTimeout(() => {
-          alert.show = false;
-        }, 5000);
+        showAlert("Categoría creada con éxito", "success");
         showCreateForm.value = false;
         newCategoryData.name = "";
       } catch (error) {
-        alert.message = "Error al crear la categoría";
-        alert.type = "danger";
-        alert.show = true;
-        setTimeout(() => {
-          alert.show = false;
-        }, 5000);
+        showAlert("Error al crear la categoría", "danger");
         console.error("Error al crear la categoría:", error);
       }
     };
@@ -194,20 +185,10 @@ export default defineComponent({
         const status = editCategoryData.status === 'Activo';
         await categoryApi.updateCategoryStatus(editCategoryData.id, status);
         await fetchCategories();
-        alert.message = "Estado de la categoría actualizado con éxito";
-        alert.type = "success";
-        alert.show = true;
-        setTimeout(() => {
-          alert.show = false;
-        }, 5000);
+        showAlert("Estado de la categoría actualizado con éxito", "success");
         showEditForm.value = false;
       } catch (error) {
-        alert.message = "Error al actualizar el estado de la categoría";
-        alert.type = "danger";
-        alert.show = true;
-        setTimeout(() => {
-          alert.show = false;
-        }, 5000);
+        showAlert("Error al actualizar el estado de la categoría", "danger");
         console.error("Error al actualizar el estado de la categoría:", error);
       }
     };
@@ -251,6 +232,15 @@ export default defineComponent({
       });
     });
 
+    const showAlert = (message: string, type: string) => {
+      alert.message = message;
+      alert.type = type;
+      alert.show = true;
+      setTimeout(() => {
+        alert.show = false;
+      }, 5000);
+    };
+
     return {
       isSidebarOpen,
       toggleSidebar,
@@ -272,7 +262,8 @@ export default defineComponent({
       showCategoryModal,
       selectedCategory,
       searchQuery,
-      filteredCategories
+      filteredCategories,
+      showAlert
     };
   },
 });

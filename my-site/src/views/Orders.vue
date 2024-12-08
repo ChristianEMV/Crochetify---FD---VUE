@@ -27,12 +27,9 @@
         </template>
 
         <template #cell(ordenProducts)="row">
-          {{ row.item.ordenProducts && Array.isArray(row.item.ordenProducts) 
-  ? row.item.ordenProducts.map((product: any) => 
-      product.product ? product.product.name : 'Producto desconocido'
-    ).join(', ') 
-  : 'No hay productos' }}
-
+          {{ row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
+            ? row.item.ordenProducts.map((product: any) => product.product?.name || 'Producto desconocido').join(', ')
+            : 'No hay productos' }}
         </template>
 
         <template #cell(shipmentStatus)="row">
@@ -64,14 +61,12 @@
         <b-form @submit.prevent="createShipment">
           <b-form-group label="Fecha de Envío">
             <b-form-group label="Fecha de Envío">
-              <input
-  type="date"
-  v-model="newShipment.shipping_day"
-  :min="new Date().toISOString().split('T')[0]"  
-  @input="console.log('Fecha de envío:', newShipment.shipping_day)"
-  required
-/>
-
+  <input
+    type="date"
+    v-model="newShipment.shipping_day"
+    :min="new Date().toISOString().split('T')[0]"  
+    required
+  />
 </b-form-group>
 
           </b-form-group>
@@ -127,9 +122,9 @@ export default defineComponent({
     const alert = reactive({ show: false, message: "", type: "success" });
     const orders = ref([]);
     const fields = [
-      { key: "idOrden", label: "ID de Orden" },
-      { key: "total", label: "Total" },
-      { key: "ordenProducts", label: "Productos de la Orden" },
+      { key: "idOrden", label: "ID de Orden", sortable: true },
+      { key: "total", label: "Total", sortable: true  },
+      { key: "ordenProducts", label: "Productos de la Orden", sortable: true  },
       { key: "shipmentStatus", label: "Estado del Envío" },
       { key: "actions", label: "Acciones" },
     ];
@@ -149,22 +144,28 @@ export default defineComponent({
     };
 
     const fetchOrders = async () => {
-  try {
-    const data = await apiOrden.getAllOrdenes();
-    console.log("Órdenes obtenidas:", data); // Log the entire response
+      try {
+        const responseOrders = await apiOrden.getAllOrdenes();
+        const responseShipments = await apiShipments.getAllShipments();
 
-    // Now you can safely access the orders under 'response.pedidosUsuario'
-    if (data && data.response && Array.isArray(data.response.pedidosUsuario)) {
-      orders.value = data.response.pedidosUsuario;
-    } else {
-      console.error("Estructura de datos inesperada:", data);
-      orders.value = [];
-    }
-  } catch (error) {
-    console.error("Error al cargar los ordenes:", error);
-    orders.value = [];
-  }
-};
+        const ordersData = responseOrders.response?.pedidosUsuario || [];
+        const shipmentsData = responseShipments.response?.shipments || [];
+
+        const shipmentMap = new Map(
+          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+        );
+
+        orders.value = ordersData.map((order: any) => ({
+          ...order,
+          shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+        }));
+      } catch (error) {
+        console.error("Error al cargar órdenes:", error);
+        alert.show = true;
+        alert.message = "Error al cargar las órdenes o envíos.";
+        alert.type = "danger";
+      }
+    };
 
     const showCreateShipmentModal = (order: any) => {
       if (typeof order.idOrden === "number") {
@@ -176,11 +177,11 @@ export default defineComponent({
     };
 
     const createShipment = async () => {
+  // Asegurarse de que idOrden no sea null
   if (newShipment.idOrden !== null && newShipment.shipping_day) {
     try {
-      console.log('Datos enviados al backend:', newShipment);
       const response = await apiShipments.createShipment({
-        idOrden: newShipment.idOrden,
+        idOrden: newShipment.idOrden,  // Ahora idOrden es siempre un número
         shipping_day: newShipment.shipping_day,
       });
       alert.show = true;
@@ -189,7 +190,6 @@ export default defineComponent({
       isCreateShipmentModalVisible.value = false;
       fetchOrders();
     } catch (error) {
-      console.error("Error al crear el envío:", error);
       alert.show = true;
       alert.message = "Error al crear el envío.";
       alert.type = "danger";
@@ -200,8 +200,6 @@ export default defineComponent({
     alert.type = "danger";
   }
 };
-
-
 
 
     const resetShipmentForm = () => {
@@ -217,7 +215,7 @@ export default defineComponent({
     onMounted(() => {
       fetchOrders();
     });
- 
+
     return {
       isSidebarOpen,
       alert,

@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const instance = axios.create({
   baseURL: 'http://100.27.71.83:8087/api/crochetify',
+  //baseURL: 'http://localhost:8080/api/crochetify',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -118,6 +119,7 @@ export const stockApi = {
       return response.data;
     } catch (error) {
       console.error('Error al crear el stock:', error);
+      
       throw error;
     }
   },
@@ -144,16 +146,21 @@ export const stockApi = {
     }
   },
 
-  updateStock: async (idStock: number, stockData: { color?: string; price?: number; quantity?: number; status?: boolean; images?: string[] }) => {
+  updateStock: async (
+    idStock: number,
+    stockData: { color?: string; price?: number; quantity?: number; status?: boolean; images?: string[] } // Cambiado a array de strings
+  ) => {
     try {
+      // Ya no necesitas transformar imágenes aquí si el front las envía correctamente
       const response = await instance.put(`/stock/${idStock}`, stockData);
-      console.log('Stock actualizado:', response.data);
+      console.log("Stock actualizado:", response.data);
       return response.data;
-    } catch (error) {
-      console.error('Error al actualizar el stock:', error);
+    } catch (error: any) {
+      console.error("Error al actualizar el stock:", error.response?.data || error.message);
       throw error;
     }
   }
+  
 };
 export const userApi = {
   getAllUsers: async () => {

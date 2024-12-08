@@ -9,7 +9,8 @@ import Orders from "../views/Orders.vue";
 import Shipments from "../views/Shipments.vue";
 import Users from "../views/Users.vue";
 import FullShipments from "@/views/FullShipments.vue";
-import authService from "../authService"; 
+import authService from "../authService";
+import ErrorPage from "@/views/Error.vue";
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", redirect: "login"},
@@ -22,9 +23,9 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/orders", name: "orders", component: Orders, meta: { requiresAdmin: true } },
   { path: "/shipments", name: "shipments", component: Shipments, meta: { requiresAdmin: true } },
   { path: "/fullshipments", name: "fullshipments", component: FullShipments, meta: { requiresAdmin: true } },
-  { path: "/users", name: "users", component: Users, meta: { requiresAdmin: true } }, // Ruta protegida solo para admin
+  { path: "/users", name: "users", component: Users, meta: { requiresAdmin: true } }, 
+  { path: "/:pathMatch(.*)*", name: "not-found", component: ErrorPage },
 ];
-
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
@@ -49,4 +50,3 @@ router.beforeEach((to, from, next) => {
 });
 
 export default router;
-

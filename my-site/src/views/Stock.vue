@@ -149,6 +149,7 @@
               <input
                 type="file"
                 id="edit-images-input"
+                accept="image/*"
                 multiple
                 @change="handleEditImageUpload"
               />
@@ -220,30 +221,36 @@
       </b-table>
     </div>
 
-    <b-modal v-model="showStockModal" title="Detalles del Stock" hide-footer>
-      <div v-if="selectedStock">
-        <p><strong>ID:</strong> {{ selectedStock.idStock }}</p>
-        <p><strong>Producto:</strong> {{ selectedStock.product.name }}</p>
-        <p>
-          <strong>Color:</strong>
-          <span
-            :style="{ backgroundColor: selectedStock.color }"
-            class="color-box"
-          ></span>
-        </p>
-        <p><strong>Precio:</strong> {{ selectedStock.price }}</p>
-        <p><strong>Cantidad:</strong> {{ selectedStock.quantity }}</p>
-        <p><strong>Imágenes:</strong></p>
-        <div v-if="selectedStock.images && selectedStock.images.length">
-          <img
-            v-for="(image, index) in selectedStock.images"
-            :key="index"
-            :src="image"
-            class="stock-image"
-          />
-        </div>
-      </div>
-    </b-modal>
+    <b-modal
+  v-model="showStockModal"
+  :key="selectedStock?.idStock || 'default'"
+  title="Detalles del Stock"
+  hide-footer
+>
+  <div v-if="selectedStock">
+    <p><strong>ID:</strong> {{ selectedStock.idStock }}</p>
+    <p><strong>Producto:</strong> {{ selectedStock.product.name }}</p>
+    <p>
+      <strong>Color:</strong>
+      <span
+        :style="{ backgroundColor: selectedStock.color }"
+        class="color-box"
+      ></span>
+    </p>
+    <p><strong>Precio:</strong> {{ selectedStock.price }}</p>
+    <p><strong>Cantidad:</strong> {{ selectedStock.quantity }}</p>
+    <p><strong>Imágenes:</strong></p>
+    <div v-if="selectedStock.images && selectedStock.images.length">
+      <img
+        v-for="(image, index) in selectedStock.images"
+        :key="index"
+        :src="image"
+        class="stock-image"
+      />
+    </div>
+  </div>
+</b-modal>
+
 
     <div v-if="showModal" class="modal">
       <div class="modal-content">
@@ -275,15 +282,14 @@ export default defineComponent({
       color: "#000000",
       price: 0,
       quantity: 0,
-      images: [] as string[],
+      images: [] as string[], // Mantener las imágenes como URLs o identificadores
     });
     const editStockData = reactive({
       idStock: 0,
-      productId: 0,
       color: "#000000",
       price: 0,
       quantity: 0,
-      images: [] as string[],
+      images: [] as string[], // Mantener las imágenes como URLs o identificadores
     });
     const stocks = ref([]);
     const products = ref([]);
@@ -298,7 +304,6 @@ export default defineComponent({
       images: string[];
     } | null>(null);
     const showModal = ref(false);
-    //hola mundo
     const stockImageUrl = ref("");
 
     const toggleSidebar = () => {
@@ -313,11 +318,10 @@ export default defineComponent({
     const toggleEditForm = () => {
       showEditForm.value = !showEditForm.value;
       editStockData.idStock = 0;
-      editStockData.productId = 0;
       editStockData.color = "#000000";
       editStockData.price = 0;
       editStockData.quantity = 0;
-      editStockData.images = [];
+      editStockData.images = []; // Borrar las imágenes previas al editar
     };
 
     const resetForm = () => {
@@ -327,6 +331,7 @@ export default defineComponent({
       newStockData.quantity = 0;
       newStockData.images = [];
     };
+
     const createStock = async () => {
       try {
         await stockApi.createStock(newStockData);
@@ -350,39 +355,87 @@ export default defineComponent({
     };
 
     const updateStock = async () => {
-      try {
-        await stockApi.updateStock(editStockData.idStock, editStockData);
-        await fetchStocks();
-        alert.message = "Stock actualizado con éxito";
-        alert.type = "success";
-        alert.show = true;
-        setTimeout(() => {
-          alert.show = false;
-        }, 5000);
-        showEditForm.value = false;
-      } catch (error) {
-        alert.message = "Error al actualizar el stock";
-        alert.type = "danger";
-        alert.show = true;
-        setTimeout(() => {
-          alert.show = false;
-        }, 5000);
-        console.error("Error al actualizar el stock:", error);
-      }
+  try {
+    // Combina las imágenes existentes del stock con las nuevas cargadas
+    const combinedImages = [
+      ...(selectedStock.value?.images || []), // Imágenes existentes
+      ...editStockData.images, // Nuevas imágenes cargadas
+    ].filter(Boolean); // Filtrar valores vacíos o inválidos
+
+    // Crear el payload con las imágenes combinadas
+    const payload = {
+      ...editStockData,
+      images: combinedImages,
     };
 
+    console.log("Payload enviado para actualización:", payload); // Para depuración
+
+    // Realizar la solicitud de actualización de stock
+    await stockApi.updateStock(editStockData.idStock, payload);
+
+    // Refrescar la lista de stocks después de actualizar
+    await fetchStocks();
+
+    // Mostrar mensaje de éxito
+    alert.message = "Stock actualizado con éxito";
+    alert.type = "success";
+    alert.show = true;
+    setTimeout(() => {
+      alert.show = false;
+    }, 5000);
+
+    showEditForm.value = false; // Cerrar formulario de edición
+  } catch (error) {
+    // Manejo de errores
+    console.error("Error al actualizar el stock:", error);
+
+    alert.message = "Error al actualizar el stock";
+    alert.type = "danger";
+    alert.show = true;
+    setTimeout(() => {
+      alert.show = false;
+    }, 5000);
+  }
+};
+
+
     const fetchStocks = async () => {
-      try {
-        isLoading.value = true;
-        const data = await stockApi.getStocks();
-        stocks.value = data.response.stocks;
-      } catch (error) {
-        console.error("Error al cargar los stocks:", error);
-        stocks.value = [];
-      } finally {
-        isLoading.value = false;
-      }
-    };
+  try {
+    isLoading.value = true;
+    const data = await stockApi.getStocks();
+
+    // Procesar las imágenes de cada stock
+    const processedStocks = data.response.stocks.map((stock: any) => {
+      const processedImages = (stock.images || []).map((image: any) => {
+        if (typeof image === "object" && image.image) {
+          // Si es un objeto, extraer el valor de la propiedad `image`
+          return image.image.startsWith("data:image/")
+            ? image.image
+            : `data:image/jpeg;base64,${image.image}`;
+        } else if (typeof image === "string") {
+          // Si es una cadena, verifica y ajusta el prefijo
+          return image.startsWith("data:image/")
+            ? image
+            : `data:image/jpeg;base64,${image}`;
+        } else {
+          console.warn("Formato de imagen desconocido:", image);
+          return ""; // Retorna una cadena vacía para evitar errores
+        }
+      });
+      return { ...stock, images: processedImages };
+    });
+
+    stocks.value = processedStocks; // Actualiza el estado con los stocks procesados
+  } catch (error) {
+    console.error("Error al cargar los stocks:", error);
+    stocks.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+
+
 
     const fetchProducts = async () => {
       try {
@@ -390,7 +443,6 @@ export default defineComponent({
         products.value = data.response.products.map((product: any) => ({
           value: product.idProduct,
           text: product.name,
-
         }));
       } catch (error) {
         console.error("Error al cargar los productos:", error);
@@ -400,18 +452,21 @@ export default defineComponent({
 
     const openEditForm = (stock: any) => {
       editStockData.idStock = stock.idStock;
-      editStockData.productId = stock.product.id;
       editStockData.color = stock.color;
       editStockData.price = stock.price;
       editStockData.quantity = stock.quantity;
-      editStockData.images = stock.images || [];
+      editStockData.images = []; // Limpiar las imágenes al abrir el formulario de edición
       showEditForm.value = true;
     };
 
     const openStockModal = (stock: any) => {
-      selectedStock.value = stock;
-      showStockModal.value = true;
-    };
+  selectedStock.value = stock; // Asignar el stock seleccionado
+  showStockModal.value = false; // Asegurarte de reiniciar el modal
+  setTimeout(() => {
+    showStockModal.value = true; // Mostrar modal con el nuevo stock seleccionado
+  }, 0); // Usar un pequeño delay para forzar actualización del DOM
+};
+
 
     const handleImageUpload = (event: Event) => {
       const files = (event.target as HTMLInputElement).files;
@@ -419,6 +474,7 @@ export default defineComponent({
         for (let i = 0; i < files.length; i++) {
           const reader = new FileReader();
           reader.onload = (e) => {
+            // Aquí solo agregamos las URLs o identificadores de las imágenes
             newStockData.images.push((e.target?.result as string) || "");
           };
           reader.readAsDataURL(files[i]);
@@ -432,6 +488,7 @@ export default defineComponent({
         for (let i = 0; i < files.length; i++) {
           const reader = new FileReader();
           reader.onload = (e) => {
+            // Aquí solo agregamos las URLs o identificadores de las imágenes
             editStockData.images.push((e.target?.result as string) || "");
           };
           reader.readAsDataURL(files[i]);
@@ -445,6 +502,7 @@ export default defineComponent({
         for (let i = 0; i < files.length; i++) {
           const reader = new FileReader();
           reader.onload = (e) => {
+            // Aquí solo agregamos las URLs o identificadores de las imágenes
             newStockData.images.push((e.target?.result as string) || "");
           };
           reader.readAsDataURL(files[i]);
@@ -458,12 +516,14 @@ export default defineComponent({
         for (let i = 0; i < files.length; i++) {
           const reader = new FileReader();
           reader.onload = (e) => {
+            // Aquí solo agregamos las URLs o identificadores de las imágenes
             editStockData.images.push((e.target?.result as string) || "");
           };
           reader.readAsDataURL(files[i]);
         }
       }
     };
+
     const displayStockModal = (base64Image: string) => {
       const imageUrl = `data:image/jpeg;base64,${base64Image}`;
       stockImageUrl.value = imageUrl;
@@ -511,11 +571,12 @@ export default defineComponent({
       showModal,
       stockImageUrl,
       showStockModal,
-      resetForm,
+      resetForm
     };
   },
 });
 </script>
+
 
 <style scoped>
 .header {

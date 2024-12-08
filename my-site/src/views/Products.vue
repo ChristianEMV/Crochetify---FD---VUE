@@ -118,7 +118,7 @@
           <span>{{ row.item.description }}</span>
         </template>
         <template #cell(categories)="row">
-          <span>{{ row.item.categories.map(category => category.name).join(', ') }}</span>
+          <span>{{ row.item.categories.map((category:any) => category.name).join(', ') }}</span>
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
