@@ -11,10 +11,11 @@ import Users from "../views/Users.vue";
 import FullShipments from "@/views/FullShipments.vue";
 import authService from "../authService";
 import ErrorPage from "@/views/Error.vue";
+import Landingpage from "@/views/Landingpage.vue";
 
 const routes: Array<RouteRecordRaw> = [
-  { path: "/", redirect: "login"},
-  { path: "/", name: "login", component: Login },
+  { path: "/", redirect: "landingpage" },
+  {path:"/landingpage", name:"landingpage", component: Landingpage},
   { path: "/login", name: "login", component: Login },
   { path: "/home", name: "home", component: Home, meta: { requiresAdmin: true } },
   { path: "/categories", name: "categories", component: Categories, meta: { requiresAdmin: true } },
