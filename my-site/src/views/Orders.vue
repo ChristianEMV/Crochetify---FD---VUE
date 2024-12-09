@@ -125,7 +125,7 @@ export default defineComponent({
       { key: "idOrden", label: "ID de Orden", sortable: true },
       { key: "total", label: "Total", sortable: true  },
       { key: "ordenProducts", label: "Productos de la Orden", sortable: true  },
-      { key: "shipmentStatus", label: "Estado del Envío" },
+      { key: "shipmentStatus", label: "Estado del Envío", sortable: true },
       { key: "actions", label: "Acciones" },
     ];
     const isCreateShipmentModalVisible = ref(false);

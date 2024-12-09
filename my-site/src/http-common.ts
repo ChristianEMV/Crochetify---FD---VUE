@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'http://100.27.71.83:8087/api/crochetify',
-  //baseURL: 'http://localhost:8080/api/crochetify',
+  //baseURL: 'http://100.27.71.83:8087/api/crochetify',
+  baseURL: 'http://localhost:8080/api/crochetify',
   headers: {
     'Content-Type': 'application/json',
   },
