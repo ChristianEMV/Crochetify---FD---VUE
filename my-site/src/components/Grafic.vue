@@ -91,7 +91,7 @@ export default {
         const shipments = shipmentsResponse.response?.shipments || [];
 
         const filteredShipments = shipments.filter((shipment: any) => {
-          const shippingDate = new Date(shipment.shipping_day);
+          const shippingDate = new Date(shipment.delivery_day);
           const start = new Date(startYear.value, startMonth.value - 1, 1);
           const end = new Date(endYear.value, endMonth.value, 0);
           return shippingDate >= start && shippingDate <= end;
@@ -117,7 +117,7 @@ export default {
         }
 
         combinedData.forEach((order: any) => {
-          const shippingDate = new Date(order.shipment.shipping_day);
+          const shippingDate = new Date(order.shipment.delivery_day);
           const month = shippingDate.toLocaleString("es-ES", { month: "long", year: "numeric" });
           monthlyTotals[month] += order.total;
         });

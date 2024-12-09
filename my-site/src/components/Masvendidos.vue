@@ -81,7 +81,7 @@
         const filteredOrders = this.orders.filter(order => {
           const shipment = this.shipments.find(sh => sh.idOrden === order.idOrden);
           if (!shipment) return false;
-          const shippingDate = new Date(shipment.shipping_day);
+          const shippingDate = new Date(shipment.delivery_day);
           return (
             shippingDate.getFullYear() === this.selectedYear &&
             shippingDate.getMonth() + 1 === this.selectedMonth
