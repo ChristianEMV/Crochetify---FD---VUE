@@ -191,7 +191,7 @@
 
       <b-table
         v-else
-        :items="filterStocks"
+        :items="paginatedStock"
         :fields="fields"
         responsive
         striped
@@ -232,6 +232,13 @@
           </div>
         </template>
       </b-table>
+      <b-pagination
+  v-model="currentPage"
+  :total-rows="filterStocks.length"
+  :per-page="itemsPerPage"
+  aria-controls="category-table"
+  class="mt-3 justify-content-center"
+></b-pagination>
     </div>
 
     <b-modal
@@ -290,6 +297,15 @@ export default defineComponent({
     const showEditForm = ref(false);
     const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
+    const currentPage = ref(1); // Página actual
+    const itemsPerPage = ref(10); // Elementos por página
+
+    // Computar las categorías paginadas
+    const paginatedStock = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      return filterStocks.value.slice(start, end);
+    });
     const newStockData = reactive({
       productId: 0,
       color: "#000000",
@@ -594,6 +610,9 @@ export default defineComponent({
       searchQuery,
       showStockModal,
       resetForm,
+      paginatedStock,
+      currentPage,
+      itemsPerPage,
     };
   },
 });

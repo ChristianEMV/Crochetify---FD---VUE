@@ -24,6 +24,18 @@
     <div class="table-container">
       <h3 class="mb-4">Resumen de Envíos</h3>
 
+      <!-- Buscador -->
+      <div class="d-flex mb-3">
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <b-form-input
+            v-model="searchQuery"
+            placeholder="Buscar envíos..."
+            class="search-input"
+          ></b-form-input>
+        </div>
+      </div>
+
       <div v-if="isLoading" class="spinner-container">
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
@@ -42,17 +54,16 @@
           <span @click="openShipmentModal(row.item)" class="shipment-id">{{ row.item.idOrden }}</span>
         </template>
         <template #cell(status)="row">
-  <span
-    :style="{
-      backgroundColor: row.item.status === 1 ? 'yellow' : 'transparent',
-      padding: '2px 5px',
-      borderRadius: '4px',
-    }"
-  >
-    {{ row.item.status === 1 ? 'Entrega pendiente' : row.item.status === 2 ? 'Entregado' : 'Error' }}
-  </span>
-</template>
-
+          <span
+            :style="{
+              backgroundColor: row.item.status === 1 ? 'yellow' : 'transparent',
+              padding: '2px 5px',
+              borderRadius: '4px',
+            }"
+          >
+            {{ row.item.status === 1 ? 'Entrega pendiente' : row.item.status === 2 ? 'Entregado' : 'Error' }}
+          </span>
+        </template>
         <template #cell(shipping_day)="row">
           <span>{{ row.item.shipping_day || 'No asignada' }}</span>
         </template>
@@ -61,10 +72,10 @@
         </template>
       </b-table>
 
-      <!-- Paginación -->
+      <!-- Paginador -->
       <b-pagination 
         v-model="currentPage" 
-        :total-rows="shipments.length" 
+        :total-rows="filteredShipments.length" 
         :per-page="perPage" 
         align="center" 
         class="mt-3"
@@ -115,6 +126,7 @@ export default defineComponent({
 
     const currentPage = ref(1);
     const perPage = ref(10);
+    const searchQuery = ref(""); // Nueva variable para el texto de búsqueda
 
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
@@ -153,10 +165,20 @@ export default defineComponent({
       }
     };
 
+    const filteredShipments = computed(() => {
+      return shipments.value.filter((shipment: any) => {
+        return (
+          shipment.idOrden.toString().includes(searchQuery.value) ||
+          shipment.shipping_day?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          shipment.delivery_day?.toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
+      });
+    });
+
     const paginatedShipments = computed(() => {
       const start = (currentPage.value - 1) * perPage.value;
       const end = start + perPage.value;
-      return shipments.value.slice(start, end);
+      return filteredShipments.value.slice(start, end);
     });
 
     onMounted(fetchShipments);
@@ -172,6 +194,7 @@ export default defineComponent({
       isSidebarOpen,
       toggleSidebar,
       shipments,
+      filteredShipments,
       paginatedShipments,
       fields,
       isLoading,
@@ -181,13 +204,45 @@ export default defineComponent({
       selectedShipment,
       currentPage,
       perPage,
+      searchQuery,
     };
   },
 });
 </script>
 
-
 <style scoped>
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.search-input {
+  padding-left: 30px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
 .header {
   width: 100%;
   height: 25vh;
@@ -257,8 +312,148 @@ export default defineComponent({
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-.shipment-id {
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.custom-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: #007bff;
+}
+
+.form-container {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.alert-bottom-left {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1050;
+}
+
+.color-box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.stock-name {
   cursor: pointer;
   color: #007bff;
+}
+
+.stock-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.form-container {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.image-preview {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preview-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.drop-area {
+  border: 2px dashed #007bff;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.drop-area:hover {
+  background-color: #e9f5ff;
+}
+
+.b-form-group i {
+  margin-right: 5px;
 }
 </style>

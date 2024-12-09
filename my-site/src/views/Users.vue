@@ -18,12 +18,24 @@
     <div class="table-container">
       <h3 class="mb-4">Resumen de Usuarios</h3>
 
+      <!-- Buscador -->
+      <div class="d-flex mb-3">
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <b-form-input
+            v-model="searchQuery"
+            placeholder="Buscar usuarios..."
+            class="search-input"
+          ></b-form-input>
+        </div>
+      </div>
+
       <div v-if="isLoading" class="spinner-container">
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
 
-      <!-- La tabla -->
-      <b-table v-else :items="users" :fields="fields" responsive striped hover small>
+      <!-- Tabla -->
+      <b-table v-else :items="paginatedUsers" :fields="fields" responsive striped hover small>
         <template #cell(idUser)="row">
           <span>{{ row.item.idUser }}</span>
         </template>
@@ -43,22 +55,30 @@
               :variant="row.item.status ? 'danger' : 'warning'"
               @click="toggleStatus(row.item)"
             >
-            <span>{{ row.item.status ? 'Deshabilitada' : 'Habilitada' }}</span>
+              <span>{{ row.item.status ? 'Deshabilitada' : 'Habilitada' }}</span>
             </b-button>
           </div>
         </template>
       </b-table>
+
+      <!-- Paginador -->
+      <b-pagination 
+        v-model="currentPage" 
+        :total-rows="filteredUsers.length" 
+        :per-page="perPage" 
+        align="center" 
+        class="mt-3"
+      ></b-pagination>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
+import { defineComponent, ref, reactive, computed, onMounted } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { useRouter } from "vue-router";
-import {userApi} from "../http-common";
-
+import { userApi } from "../http-common";
 
 export default defineComponent({
   name: "Users",
@@ -68,6 +88,9 @@ export default defineComponent({
     const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
     const users = ref([]);
+    const currentPage = ref(1); // Página actual
+    const perPage = ref(10); // Usuarios por página
+    const searchQuery = ref(""); // Texto del buscador
     const router = useRouter();
 
     const toggleSidebar = () => {
@@ -82,9 +105,6 @@ export default defineComponent({
     const fetchUsers = async () => {
       try {
         const data = await userApi.getAllUsers();
-        console.log("Datos recibidos:", data);
-
-        // Filtrar los usuarios excluyendo el idUser === 2
         users.value = Array.isArray(data.response.users)
           ? data.response.users.filter((user: any) => user.idUser !== 1)
           : [];
@@ -93,8 +113,26 @@ export default defineComponent({
         users.value = [];
       } finally {
         isLoading.value = false;
-      }
-    };
+      }
+    };
+
+    // Filtrar usuarios según el texto del buscador
+    const filteredUsers = computed(() => {
+      return users.value.filter((user: any) => {
+        return (
+          user.idUser.toString().includes(searchQuery.value) ||
+          user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
+      });
+    });
+
+    // Paginación de usuarios
+    const paginatedUsers = computed(() => {
+      const start = (currentPage.value - 1) * perPage.value;
+      const end = start + perPage.value;
+      return filteredUsers.value.slice(start, end);
+    });
 
     onMounted(fetchUsers);
 
@@ -130,10 +168,10 @@ export default defineComponent({
     };
 
     const fields = [
-      { key: "idUser", label: "ID", sortable:true },
-      { key: "name", label: "Nombre", sortable:true },
-      { key: "email", label: "Email", sortable:true },
-      { key: "status", label: "Estado", sortable:true },
+      { key: "idUser", label: "ID", sortable: true },
+      { key: "name", label: "Nombre", sortable: true },
+      { key: "email", label: "Email", sortable: true },
+      { key: "status", label: "Estado", sortable: true },
       { key: "actions", label: "Acciones" },
     ];
 
@@ -141,11 +179,16 @@ export default defineComponent({
       isSidebarOpen,
       toggleSidebar,
       users,
+      filteredUsers,
+      paginatedUsers,
       fields,
       isLoading,
       alert,
       toggleStatus,
       goToFullUsersPage,
+      currentPage,
+      perPage,
+      searchQuery,
     };
   },
 });
@@ -153,6 +196,38 @@ export default defineComponent({
 
 
 <style scoped>
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.search-input {
+  padding-left: 30px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
 .header {
   width: 100%;
   height: 25vh;
@@ -237,7 +312,7 @@ export default defineComponent({
 }
 
 .form-container {
-  background-color: #fff;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -250,11 +325,13 @@ export default defineComponent({
   gap: 10px;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s;
 }
 
-.fade-enter, .fade-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -264,7 +341,104 @@ export default defineComponent({
   left: 20px;
   z-index: 1050;
 }
-.btn{
-  width: 7.5rem;
+
+.color-box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.stock-name {
+  cursor: pointer;
+  color: #007bff;
+}
+
+.stock-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.form-container {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.image-preview {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preview-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.drop-area {
+  border: 2px dashed #007bff;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.drop-area:hover {
+  background-color: #e9f5ff;
+}
+
+.b-form-group i {
+  margin-right: 5px;
 }
 </style>

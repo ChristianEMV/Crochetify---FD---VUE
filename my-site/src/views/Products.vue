@@ -107,7 +107,7 @@
       <div v-if="isLoading" class="spinner-container">
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
-      <b-table v-else :items="filteredProducts" :fields="fields" responsive striped hover small>
+      <b-table v-else :items="paginatedProducts" :fields="fields" responsive striped hover small>
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
         </template>
@@ -134,6 +134,14 @@
           </div>
         </template>
       </b-table>
+
+      <b-pagination
+  v-model="currentPage"
+  :total-rows="filteredProducts.length"
+  :per-page="itemsPerPage"
+  aria-controls="category-table"
+  class="mt-3 justify-content-center"
+></b-pagination>
     </div>
 
     <b-modal v-model="showProductModal" title="Detalles del Producto" hide-footer>
@@ -176,7 +184,15 @@ export default defineComponent({
     const showProductModal = ref(false);
     const searchQuery = ref("");
     const selectedProduct = ref<{ idProduct: number; name: string; description: string; categories: Category[] } | null>(null);
+    const currentPage = ref(1); // Página actual
+    const itemsPerPage = ref(10); // Elementos por página
 
+    // Computar las categorías paginadas
+    const paginatedProducts = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      return filteredProducts.value.slice(start, end);
+    });
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
@@ -349,6 +365,9 @@ export default defineComponent({
       showProductModal,
       selectedProduct,
       openProductModal,
+      paginatedProducts,
+      currentPage,
+      itemsPerPage,
     };
   },
 });

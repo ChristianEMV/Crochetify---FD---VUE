@@ -77,7 +77,7 @@
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
 
-      <b-table v-else :items="filteredCategories" :fields="fields" responsive striped hover small>
+      <b-table v-else :items="paginatedCategories" :fields="fields" responsive striped hover small>
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
         </template>
@@ -101,6 +101,13 @@
           </div>
         </template>
       </b-table>
+      <b-pagination
+  v-model="currentPage"
+  :total-rows="filteredCategories.length"
+  :per-page="itemsPerPage"
+  aria-controls="category-table"
+  class="mt-3 justify-content-center"
+></b-pagination>
     </div>
 
     <b-modal v-model="showCategoryModal" title="Detalles de la Categoría" hide-footer>
@@ -134,7 +141,15 @@ export default defineComponent({
     const searchQuery = ref("");
     const showCategoryModal = ref(false);
     const selectedCategory = ref<{ id: number; name: string; status: boolean } | null>(null);
+    const currentPage = ref(1); // Página actual
+    const itemsPerPage = ref(10); // Elementos por página
 
+    // Computar las categorías paginadas
+    const paginatedCategories = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      return filteredCategories.value.slice(start, end);
+    });
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
@@ -277,7 +292,10 @@ export default defineComponent({
       searchQuery,
       filteredCategories,
       showAlert,
-      validateCategoryName
+      validateCategoryName,
+      paginatedCategories,
+      currentPage,
+      itemsPerPage,
     };
   },
 });
