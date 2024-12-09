@@ -69,8 +69,8 @@ export default {
       <section id="cta" class="cta py-5 text-center text-white bg-dark">
         <div class="container">
           <h2 class="mb-3 animate__animated animate__fadeInUp">¿Listo para empezar?</h2>
-          <p class="lead animate__animated animate__fadeInUp">Únete a la comunidad de Crochetify y encuentra productos que amarás.</p>
-          <b-button size="lg" variant="light" class="mt-3 animate__animated animate__zoomIn" href="https://drive.google.com/file/d/1VVj3E36gCGV4Amu2vpGP-TAM5EtQ54A_/view" target="_blank">Regístrate Ahora</b-button>
+          <p class="lead animate__animated animate__fadeInUp">Descarga nuestra App, únete a la comunidad de Crochetify y encuentra productos que amarás.</p>
+          <b-button size="lg" variant="light" class="mt-3 animate__animated animate__zoomIn" href="https://drive.google.com/file/d/1VVj3E36gCGV4Amu2vpGP-TAM5EtQ54A_/view" target="_blank">Descargar app</b-button>
         </div>
       </section>
     </div>
@@ -103,7 +103,6 @@ export default {
 .hero {
   background-size: cover;
   animation: fadeIn 2s;
-  background-color: #f8c8dc;
   color: #6d6875;
 }
 
@@ -139,7 +138,7 @@ export default {
 }
 
 .bg-pastel-primary {
-  background-color: #f8c8dc;
+  background-color: #6180b4;
 }
 
 .btn-pastel {
