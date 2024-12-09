@@ -152,15 +152,19 @@ export default defineComponent({
     };
 
     const createCategory = async () => {
-      try {
-        await categoryApi.createCategory({ name: newCategoryData.name });
-        await fetchCategories();
-        showAlert("Categoría creada con éxito", "success");
-        showCreateForm.value = false;
-        newCategoryData.name = "";
-      } catch (error) {
-        showAlert("Error al crear la categoría", "danger");
-        console.error("Error al crear la categoría:", error);
+      if (validateCategoryName(newCategoryData.name)) {
+        try {
+          await categoryApi.createCategory({ name: newCategoryData.name });
+          await fetchCategories();
+          showAlert("Categoría creada con éxito", "success");
+          showCreateForm.value = false;
+          newCategoryData.name = "";
+        } catch (error) {
+          showAlert("Error al crear la categoría", "danger");
+          console.error("Error al crear la categoría:", error);
+        }
+      } else {
+        showAlert("El nombre de la categoría solo debe contener letras", "danger");
       }
     };
 
@@ -181,15 +185,19 @@ export default defineComponent({
     };
 
     const updateCategoryStatus = async () => {
-      try {
-        const status = editCategoryData.status === 'Activo';
-        await categoryApi.updateCategoryStatus(editCategoryData.id, status);
-        await fetchCategories();
-        showAlert("Estado de la categoría actualizado con éxito", "success");
-        showEditForm.value = false;
-      } catch (error) {
-        showAlert("Error al actualizar el estado de la categoría", "danger");
-        console.error("Error al actualizar el estado de la categoría:", error);
+      if (validateCategoryName(editCategoryData.name)) {
+        try {
+          const status = editCategoryData.status === 'Activo';
+          await categoryApi.updateCategoryStatus(editCategoryData.id, status);
+          await fetchCategories();
+          showAlert("Estado de la categoría actualizado con éxito", "success");
+          showEditForm.value = false;
+        } catch (error) {
+          showAlert("Error al actualizar el estado de la categoría", "danger");
+          console.error("Error al actualizar el estado de la categoría:", error);
+        }
+      } else {
+        showAlert("El nombre de la categoría solo debe contener letras", "danger");
       }
     };
 
@@ -241,6 +249,11 @@ export default defineComponent({
       }, 5000);
     };
 
+    const validateCategoryName = (name: string) => {
+      const regex = /^[A-Za-z]+$/;
+      return regex.test(name);
+    };
+
     return {
       isSidebarOpen,
       toggleSidebar,
@@ -263,7 +276,8 @@ export default defineComponent({
       selectedCategory,
       searchQuery,
       filteredCategories,
-      showAlert
+      showAlert,
+      validateCategoryName
     };
   },
 });

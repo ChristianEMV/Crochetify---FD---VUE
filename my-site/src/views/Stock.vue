@@ -25,8 +25,16 @@
       <h3 class="mb-4">Tabla de Stock</h3>
       <div class="d-flex mb-3">
         <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
-        <i class="fas fa-plus"></i> Agregar Stock
-      </b-button>     
+          <i class="fas fa-plus"></i> Agregar Stock
+        </b-button>
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <b-form-input
+            v-model="searchQuery"
+            placeholder="Buscar..."
+            class="search-input"
+          ></b-form-input>
+        </div>
       </div>
 
       <transition name="fade">
@@ -82,6 +90,7 @@
               <input
                 type="file"
                 id="images-input"
+                accept=".png, .jpg, .jpeg"
                 multiple
                 @change="handleImageUpload"
               />
@@ -97,6 +106,10 @@
                   v-for="(image, index) in newStockData.images"
                   :key="index"
                   :src="image"
+                  type="file"
+                  accept=".png, .jpg, .jpeg"
+                  multiple
+                  @change="handleImageUpload"
                   class="preview-image"
                 />
               </div>
@@ -118,7 +131,6 @@
       <transition name="fade">
         <div v-if="showEditForm" class="mb-4 form-container">
           <b-form @submit.prevent="updateStock">
-
             <b-form-group label="Color" label-for="edit-color-picker">
               <input
                 type="color"
@@ -149,7 +161,7 @@
               <input
                 type="file"
                 id="edit-images-input"
-                accept="image/*"
+                accept=".png, .jpg, .jpeg"
                 multiple
                 @change="handleEditImageUpload"
               />
@@ -157,6 +169,7 @@
                 class="drop-area"
                 @dragover.prevent
                 @drop.prevent="handleEditDrop"
+                @change="handleImageUpload"
               >
                 Arrastra y suelta las imágenes aquí
               </div>
@@ -178,7 +191,7 @@
 
       <b-table
         v-else
-        :items="stocks"
+        :items="filterStocks"
         :fields="fields"
         responsive
         striped
@@ -222,35 +235,34 @@
     </div>
 
     <b-modal
-  v-model="showStockModal"
-  :key="selectedStock?.idStock || 'default'"
-  title="Detalles del Stock"
-  hide-footer
->
-  <div v-if="selectedStock">
-    <p><strong>ID:</strong> {{ selectedStock.idStock }}</p>
-    <p><strong>Producto:</strong> {{ selectedStock.product.name }}</p>
-    <p>
-      <strong>Color:</strong>
-      <span
-        :style="{ backgroundColor: selectedStock.color }"
-        class="color-box"
-      ></span>
-    </p>
-    <p><strong>Precio:</strong> {{ selectedStock.price }}</p>
-    <p><strong>Cantidad:</strong> {{ selectedStock.quantity }}</p>
-    <p><strong>Imágenes:</strong></p>
-    <div v-if="selectedStock.images && selectedStock.images.length">
-      <img
-        v-for="(image, index) in selectedStock.images"
-        :key="index"
-        :src="image"
-        class="stock-image"
-      />
-    </div>
-  </div>
-</b-modal>
-
+      v-model="showStockModal"
+      :key="selectedStock?.idStock || 'default'"
+      title="Detalles del Stock"
+      hide-footer
+    >
+      <div v-if="selectedStock">
+        <p><strong>ID:</strong> {{ selectedStock.idStock }}</p>
+        <p><strong>Producto:</strong> {{ selectedStock.product.name }}</p>
+        <p>
+          <strong>Color:</strong>
+          <span
+            :style="{ backgroundColor: selectedStock.color }"
+            class="color-box"
+          ></span>
+        </p>
+        <p><strong>Precio:</strong> {{ selectedStock.price }}</p>
+        <p><strong>Cantidad:</strong> {{ selectedStock.quantity }}</p>
+        <p><strong>Imágenes:</strong></p>
+        <div v-if="selectedStock.images && selectedStock.images.length">
+          <img
+            v-for="(image, index) in selectedStock.images"
+            :key="index"
+            :src="image"
+            class="stock-image"
+          />
+        </div>
+      </div>
+    </b-modal>
 
     <div v-if="showModal" class="modal">
       <div class="modal-content">
@@ -262,7 +274,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
+import { defineComponent, ref, reactive, onMounted, computed } from "vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
 import { useRouter } from "vue-router";
@@ -273,6 +285,7 @@ export default defineComponent({
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
+    const searchQuery = ref("");
     const showCreateForm = ref(false);
     const showEditForm = ref(false);
     const isLoading = ref(true);
@@ -355,87 +368,83 @@ export default defineComponent({
     };
 
     const updateStock = async () => {
-  try {
-    // Combina las imágenes existentes del stock con las nuevas cargadas
-    const combinedImages = [
-      ...(selectedStock.value?.images || []), // Imágenes existentes
-      ...editStockData.images, // Nuevas imágenes cargadas
-    ].filter(Boolean); // Filtrar valores vacíos o inválidos
+      try {
+        // Combina las imágenes existentes del stock con las nuevas cargadas
+        const combinedImages = [
+          ...(selectedStock.value?.images || []), // Imágenes existentes
+          ...editStockData.images, // Nuevas imágenes cargadas
+        ].filter(Boolean); // Filtrar valores vacíos o inválidos
 
-    // Crear el payload con las imágenes combinadas
-    const payload = {
-      ...editStockData,
-      images: combinedImages,
+        // Crear el payload con las imágenes combinadas
+        const payload = {
+          ...editStockData,
+          images: combinedImages,
+        };
+
+        console.log("Payload enviado para actualización:", payload); // Para depuración
+
+        // Realizar la solicitud de actualización de stock
+        await stockApi.updateStock(editStockData.idStock, payload);
+
+        // Refrescar la lista de stocks después de actualizar
+        await fetchStocks();
+
+        // Mostrar mensaje de éxito
+        alert.message = "Stock actualizado con éxito";
+        alert.type = "success";
+        alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+
+        showEditForm.value = false; // Cerrar formulario de edición
+      } catch (error) {
+        // Manejo de errores
+        console.error("Error al actualizar el stock:", error);
+
+        alert.message = "Error al actualizar el stock";
+        alert.type = "danger";
+        alert.show = true;
+        setTimeout(() => {
+          alert.show = false;
+        }, 5000);
+      }
     };
 
-    console.log("Payload enviado para actualización:", payload); // Para depuración
-
-    // Realizar la solicitud de actualización de stock
-    await stockApi.updateStock(editStockData.idStock, payload);
-
-    // Refrescar la lista de stocks después de actualizar
-    await fetchStocks();
-
-    // Mostrar mensaje de éxito
-    alert.message = "Stock actualizado con éxito";
-    alert.type = "success";
-    alert.show = true;
-    setTimeout(() => {
-      alert.show = false;
-    }, 5000);
-
-    showEditForm.value = false; // Cerrar formulario de edición
-  } catch (error) {
-    // Manejo de errores
-    console.error("Error al actualizar el stock:", error);
-
-    alert.message = "Error al actualizar el stock";
-    alert.type = "danger";
-    alert.show = true;
-    setTimeout(() => {
-      alert.show = false;
-    }, 5000);
-  }
-};
-
-
     const fetchStocks = async () => {
-  try {
-    isLoading.value = true;
-    const data = await stockApi.getStocks();
+      try {
+        isLoading.value = true;
+        const data = await stockApi.getStocks();
 
-    // Procesar las imágenes de cada stock
-    const processedStocks = data.response.stocks.map((stock: any) => {
-      const processedImages = (stock.images || []).map((image: any) => {
-        if (typeof image === "object" && image.image) {
-          // Si es un objeto, extraer el valor de la propiedad `image`
-          return image.image.startsWith("data:image/")
-            ? image.image
-            : `data:image/jpeg;base64,${image.image}`;
-        } else if (typeof image === "string") {
-          // Si es una cadena, verifica y ajusta el prefijo
-          return image.startsWith("data:image/")
-            ? image
-            : `data:image/jpeg;base64,${image}`;
-        } else {
-          console.warn("Formato de imagen desconocido:", image);
-          return ""; // Retorna una cadena vacía para evitar errores
-        }
-      });
-      return { ...stock, images: processedImages };
-    });
+        // Procesar las imágenes de cada stock
+        const processedStocks = data.response.stocks.map((stock: any) => {
+          const processedImages = (stock.images || []).map((image: any) => {
+            if (typeof image === "object" && image.image) {
+              // Si es un objeto, extraer el valor de la propiedad `image`
+              return image.image.startsWith("data:image/")
+                ? image.image
+                : `data:image/jpeg;base64,${image.image}`;
+            } else if (typeof image === "string") {
+              // Si es una cadena, verifica y ajusta el prefijo
+              return image.startsWith("data:image/")
+                ? image
+                : `data:image/jpeg;base64,${image}`;
+            } else {
+              console.warn("Formato de imagen desconocido:", image);
+              return ""; // Retorna una cadena vacía para evitar errores
+            }
+          });
+          return { ...stock, images: processedImages };
+        });
 
-    stocks.value = processedStocks; // Actualiza el estado con los stocks procesados
-  } catch (error) {
-    console.error("Error al cargar los stocks:", error);
-    stocks.value = [];
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-
-
+        stocks.value = processedStocks; // Actualiza el estado con los stocks procesados
+      } catch (error) {
+        console.error("Error al cargar los stocks:", error);
+        stocks.value = [];
+      } finally {
+        isLoading.value = false;
+      }
+    };
 
     const fetchProducts = async () => {
       try {
@@ -460,13 +469,12 @@ export default defineComponent({
     };
 
     const openStockModal = (stock: any) => {
-  selectedStock.value = stock; // Asignar el stock seleccionado
-  showStockModal.value = false; // Asegurarte de reiniciar el modal
-  setTimeout(() => {
-    showStockModal.value = true; // Mostrar modal con el nuevo stock seleccionado
-  }, 0); // Usar un pequeño delay para forzar actualización del DOM
-};
-
+      selectedStock.value = stock; // Asignar el stock seleccionado
+      showStockModal.value = false; // Asegurarte de reiniciar el modal
+      setTimeout(() => {
+        showStockModal.value = true; // Mostrar modal con el nuevo stock seleccionado
+      }, 0); // Usar un pequeño delay para forzar actualización del DOM
+    };
 
     const handleImageUpload = (event: Event) => {
       const files = (event.target as HTMLInputElement).files;
@@ -544,6 +552,18 @@ export default defineComponent({
       { key: "actions", label: "Acciones" },
     ];
 
+    const filterStocks = computed(() => {
+      return stocks.value.filter((stock: { idStock: number; product: { name: string }; color: string; price: number; quantity: number }) => {
+        return (
+          stock.idStock.toString().includes(searchQuery.value) ||
+          stock.product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          stock.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          stock.price.toString().includes(searchQuery.value) ||
+          stock.quantity.toString().includes(searchQuery.value)
+        );
+      });
+    });
+
     return {
       isSidebarOpen,
       toggleSidebar,
@@ -568,17 +588,50 @@ export default defineComponent({
       products,
       displayStockModal,
       selectedStock,
+      filterStocks,
       showModal,
       stockImageUrl,
+      searchQuery,
       showStockModal,
-      resetForm
+      resetForm,
     };
   },
 });
 </script>
 
-
 <style scoped>
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.search-input {
+  padding-left: 30px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
 .header {
   width: 100%;
   height: 25vh;

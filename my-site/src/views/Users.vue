@@ -83,17 +83,18 @@ export default defineComponent({
       try {
         const data = await userApi.getAllUsers();
         console.log("Datos recibidos:", data);
-        users.value = Array.isArray(data.response.users) ? data.response.users : [];
+
+        // Filtrar los usuarios excluyendo el idUser === 2
+        users.value = Array.isArray(data.response.users)
+          ? data.response.users.filter((user: any) => user.idUser !== 1)
+          : [];
       } catch (error) {
         console.error("Error al cargar los usuarios:", error);
-        alert.show = true;
-        alert.message = "Error al cargar los usuarios.";
-        alert.type = "danger";
         users.value = [];
       } finally {
         isLoading.value = false;
-      }
-    };
+      }
+    };
 
     onMounted(fetchUsers);
 
