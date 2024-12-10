@@ -193,16 +193,17 @@ export default defineComponent({
     };
 
     const updateCategoryName = async () => {
-      try {
-        await categoryApi.updateCategoryName(editCategoryData.id, { name: editCategoryData.name });
-        await fetchCategories();
-        showAlert("Nombre de la categoría actualizado con éxito", "success");
-        showEditForm.value = false;
-      } catch (error) {
-        showAlert("Error al actualizar el nombre de la categoría", "danger");
-        console.error("Error al actualizar el nombre de la categoría:", error);
-      }
-    };
+  try {
+    await categoryApi.updateCategoryName(editCategoryData.id, editCategoryData.name);
+    await fetchCategories();
+    showAlert("Nombre de la categoría actualizado con éxito", "success");
+    showEditForm.value = false;
+  } catch (error) {
+    showAlert("Error al actualizar el nombre de la categoría", "danger");
+    console.error("Error al actualizar el nombre de la categoría:", error);
+  }
+};
+
 
     const fetchCategories = async () => {
       try {
