@@ -44,12 +44,12 @@ export const categoryApi = {
     }
   },
 
-  updateCategoryStatus: async (id: number, status: boolean) => {
+  updateCategoryName: async (idCategory: number, name: string) => {
     try {
-      const response = await instance.put(`/categories/${id}/status`, { status });
+      const response = await instance.put('/categories', { idCategory, name });
       return response.data;
     } catch (error) {
-      console.error('Error al actualizar el estado de la categoría:', error);
+      console.error('Error al actualizar el nombre de la categoría:', error);
       throw error;
     }
   },
