@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar"/>
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar" />
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-box"></i> Productos</h3>
@@ -10,26 +10,17 @@
     </div>
 
     <transition name="fade">
-      <div
-        v-if="alert.show"
-        :class="[
-          'alert',
-          `alert-${alert.type}`,
-          'alert-dismissible',
-          'fade',
-          'show',
-        ]"
-        role="alert"
-      >
+      <div v-if="alert.show" :class="[
+        'alert',
+        `alert-${alert.type}`,
+        'alert-dismissible',
+        'fade',
+        'show',
+      ]" role="alert">
         <strong>{{ alert.type === "success" ? "¡Éxito!" : "¡Error!" }}</strong>
         {{ alert.message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-          aria-label="Close"
-          @click="alert.show = false"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+          @click="alert.show = false"></button>
       </div>
     </transition>
 
@@ -41,56 +32,27 @@
         </b-button>
         <div class="search-input-container">
           <i class="fas fa-search search-icon"></i>
-          <b-form-input
-            v-model="searchQuery"
-            placeholder="Buscar..."
-            class="search-input"
-          ></b-form-input>
+          <b-form-input v-model="searchQuery" placeholder="Buscar..." class="search-input"></b-form-input>
         </div>
       </div>
       <transition name="fade">
         <div v-if="showCreateForm" class="mb-4 form-container">
           <b-form @submit.prevent="createProduct">
-            <b-form-group
-              label="Nombre del Producto"
-              label-for="product-name-input"
-            >
-              <b-form-input
-                id="product-name-input"
-                v-model="newProductData.name"
-                required
-                placeholder="Introduce el nombre del producto"
-              ></b-form-input>
+            <b-form-group label="Nombre del Producto" label-for="product-name-input">
+              <b-form-input id="product-name-input" v-model="newProductData.name" required
+                placeholder="Introduce el nombre del producto"></b-form-input>
             </b-form-group>
-            <b-form-group
-              label="Descripción del Producto"
-              label-for="product-description-input"
-            >
-              <b-form-textarea
-                id="product-description-input"
-                v-model="newProductData.description"
-                required
-                placeholder="Introduce la descripción del producto"
-                rows="3"
-              ></b-form-textarea>
+            <b-form-group label="Descripción del Producto" label-for="product-description-input">
+              <b-form-textarea id="product-description-input" v-model="newProductData.description" required
+                placeholder="Introduce la descripción del producto" rows="3"></b-form-textarea>
             </b-form-group>
-            <b-form-group
-              label="Categorías"
-              label-for="product-categories-input"
-            >
-              <b-form-checkbox-group
-                id="product-categories-input"
-                v-model="newProductData.categoryIds"
-                :options="categories"
-                name="categories"
-                stacked
-              ></b-form-checkbox-group>
+            <b-form-group label="Categorías" label-for="product-categories-input">
+              <b-form-checkbox-group id="product-categories-input" v-model="newProductData.categoryIds"
+                :options="categories" name="categories" stacked></b-form-checkbox-group>
             </b-form-group>
             <br />
             <div class="button-group">
-              <b-button variant="danger" @click="toggleCreateForm"
-                >Cancelar</b-button
-              >
+              <b-button variant="danger" @click="toggleCreateForm">Cancelar</b-button>
               <b-button variant="success" type="submit">Guardar</b-button>
             </div>
           </b-form>
@@ -104,36 +66,27 @@
               <p>{{ editProductData.id }}</p>
             </b-form-group>
             <b-form-group label="Nombre del Producto">
-              <b-form-input
-                v-model="editProductData.name"
-                required
-                placeholder="Introduce el nombre del producto"
-              ></b-form-input>
+              <b-form-input v-model="editProductData.name" required
+                placeholder="Introduce el nombre del producto"></b-form-input>
             </b-form-group>
             <b-form-group label="Descripción del Producto">
-              <b-form-textarea
-                v-model="editProductData.description"
-                required
-                placeholder="Introduce la descripción del producto"
-                rows="3"
-              ></b-form-textarea>
+              <b-form-textarea v-model="editProductData.description" required
+                placeholder="Introduce la descripción del producto" rows="3"></b-form-textarea>
             </b-form-group>
-            <b-form-group label="Categorías">
-              <b-form-checkbox-group
-                v-model="editProductData.categoryIds"
-                :options="categories"
-                name="categories"
-                stacked
-              ></b-form-checkbox-group>
+            <b-form-group label="">
+              <b-form-group label="">
+                <b-form-group label="Categorías seleccionadas:">
+                </b-form-group>
+                <b-form-checkbox-group v-model="editProductData.categoryIds" :options="categories" name="categories"
+                  stacked></b-form-checkbox-group>
+
+              </b-form-group>
+
             </b-form-group>
             <br />
             <div class="button-group">
-              <b-button variant="danger" @click="toggleEditForm"
-                >Cancelar</b-button
-              >
-              <b-button variant="success" type="submit"
-                >Guardar Cambios</b-button
-              >
+              <b-button variant="danger" @click="toggleEditForm">Cancelar</b-button>
+              <b-button variant="success" type="submit">Guardar Cambios</b-button>
             </div>
           </b-form>
         </div>
@@ -142,15 +95,7 @@
       <div v-if="isLoading" class="spinner-container">
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
-      <b-table
-        v-else
-        :items="paginatedProducts"
-        :fields="fields"
-        responsive
-        striped
-        hover
-        small
-      >
+      <b-table v-else :items="paginatedProducts" :fields="fields" responsive striped hover small>
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
         </template>
@@ -169,12 +114,7 @@
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
-            <b-button
-              variant="warning"
-              size="sm"
-              class="mr-2"
-              @click="openEditForm(row.item)"
-            >
+            <b-button variant="warning" size="sm" class="mr-2" @click="openEditForm(row.item)">
               <i class="fas fa-edit"></i>
               Editar Producto
             </b-button>
@@ -182,20 +122,11 @@
         </template>
       </b-table>
 
-      <b-pagination
-        v-model="currentPage"
-        :total-rows="filteredProducts.length"
-        :per-page="itemsPerPage"
-        aria-controls="category-table"
-        class="mt-3 justify-content-center"
-      ></b-pagination>
+      <b-pagination v-model="currentPage" :total-rows="filteredProducts.length" :per-page="itemsPerPage"
+        aria-controls="category-table" class="mt-3 justify-content-center"></b-pagination>
     </div>
 
-    <b-modal
-      v-model="showProductModal"
-      title="Detalles del Producto"
-      hide-footer
-    >
+    <b-modal v-model="showProductModal" title="Detalles del Producto" hide-footer>
       <div v-if="selectedProduct">
         <p><strong>ID:</strong> {{ selectedProduct.idProduct }}</p>
         <p><strong>Nombre:</strong> {{ selectedProduct.name }}</p>
@@ -322,31 +253,52 @@ export default defineComponent({
         console.error("Error al crear el producto:", error);
       }
     };
-    const openEditForm = (product: any) => {
-      setTimeout(() => {
-        const editFormElement = document.querySelector(".form-container");
-        editFormElement?.scrollIntoView({ behavior: "smooth" });
-      }, 0);
-      showCreateForm.value = false;
-      if (!product.idProduct) {
-        console.error("ID del producto no encontrado", product);
-        return;
-      }
 
-      // Actualiza editProductData completamente para garantizar reactividad
+    const openEditForm = (product: any) => {
+      console.log("Producto seleccionado para editar:", product);
+
+      // Asignar datos del producto al formulario de edición
       Object.assign(editProductData, {
-        id: product.idProduct,
-        name: product.name,
-        description: product.description,
+        id: product.idProduct, // ID del producto
+        name: product.name, // Nombre del producto
+        description: product.description, // Descripción del producto
+        // Mapeamos correctamente los IDs de las categorías
         categoryIds: product.categories
-          .filter((category: any) => category && category.id)
-          .map((category: any) => category.id),
+          .filter((category: any) => category?.idCategory) // Aseguramos que existan IDs válidos
+          .map((category: any) => category.idCategory), // Usamos idCategory en lugar de id
       });
 
-      showEditForm.value = true;
+      // Mapeamos las categorías para mostrarlas correctamente en `selectedProduct`
+      selectedProduct.value = {
+        ...product,
+        categories: product.categories.map((category: any) => ({
+          idCategory: category.idCategory, // Aseguramos el uso del campo correcto
+          name: category.name,
+        })),
+      };
 
-      console.log("Datos para editar:", editProductData);
+      console.log("Categorías seleccionadas para editar:", selectedProduct.value.categories);
+
+      // Mostrar el formulario de edición
+      showEditForm.value = true;
     };
+
+
+
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getAllCategories();
+        categories.value = data.response.categories.map((cat: any) => ({
+          value: cat.idCategory, // Este será el ID de la categoría
+          text: cat.name, // Este será el texto mostrado en los checkboxes
+        }));
+        console.log("Categorías cargadas:", categories.value);
+      } catch (error) {
+        console.error("Error al cargar las categorías:", error);
+      }
+    };
+
+
 
     const updateProduct = async () => {
       try {
@@ -380,18 +332,18 @@ export default defineComponent({
         const data = await productApi.getProducts();
         const allProducts = Array.isArray(data.response.products)
           ? data.response.products.map(
-              (prod: {
-                idProduct: any;
-                name: any;
-                description: any;
-                categories: any;
-              }) => ({
-                idProduct: prod.idProduct,
-                name: prod.name,
-                description: prod.description,
-                categories: prod.categories,
-              })
-            )
+            (prod: {
+              idProduct: any;
+              name: any;
+              description: any;
+              categories: any;
+            }) => ({
+              idProduct: prod.idProduct,
+              name: prod.name,
+              description: prod.description,
+              categories: prod.categories,
+            })
+          )
           : [];
         products.value = allProducts;
       } catch (error) {
@@ -427,20 +379,7 @@ export default defineComponent({
       );
     });
 
-    const fetchCategories = async () => {
-      try {
-        const data = await categoryApi.getAllCategories();
-        categories.value = data.response.categories.map(
-          (cat: { idCategory: any; name: any }) => ({
-            value: cat.idCategory,
-            text: cat.name,
-          })
-        );
-      } catch (error) {
-        console.error("Error al cargar las categorías:", error);
-        categories.value = [];
-      }
-    };
+
 
     const openProductModal = (product: any) => {
       selectedProduct.value = product;
@@ -611,6 +550,7 @@ export default defineComponent({
   left: 20px;
   z-index: 1050;
 }
+
 .search-container {
   display: flex;
   align-items: center;
