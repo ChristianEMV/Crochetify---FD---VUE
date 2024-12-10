@@ -34,7 +34,7 @@
           <b-button
             variant="link"
             class="text-primary"
-            @click="showOrderModal(row.item)"
+            @click="showOrderDetails(row.item)"
           >
             {{ row.item.idOrden }}
           </b-button>
@@ -47,18 +47,18 @@
         </template>
 
         <template #cell(shipmentStatus)="row">
-          <span :class="row.item.shipmentStatus === 1 || row.item.shipmentStatus ===2 ? 'text-success' : ''">
-            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus ===2 ? "Enviado" : "Sin enviar" }}
+          <span :class="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? 'text-success' : ''">
+            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? "Enviado" : "Sin enviar" }}
           </span>
         </template>
 
         <template #cell(actions)="row">
           <b-button
-            :disabled="row.item.shipmentStatus === 1 || row.item.shipmentStatus ===2 "
+            :disabled="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2"
             variant="success"
             @click="showCreateShipmentModal(row.item)"
           >
-            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus ===2 ? "Enviado" : "Enviar" }}
+            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? "Enviado" : "Enviar" }}
           </b-button>
         </template>
       </b-table>
@@ -73,8 +73,39 @@
       ></b-pagination>
     </div>
 
-    <!-- Modales existentes -->
-    <!-- (Códigos de los modales ya incluidos en tu código actual) -->
+    <!-- Modal para mostrar detalles de la orden -->
+    <b-modal v-model="showOrderModal" title="Detalles de la Orden" hide-footer>
+      <div v-if="selectedOrder">
+        <p><strong>ID de Orden:</strong> {{ selectedOrder.idOrden }}</p>
+        <p><strong>Total:</strong> {{ selectedOrder.total }}</p>
+        <p><strong>Productos:</strong></p>
+        <ul>
+          <li v-for="product in selectedOrder.ordenProducts || []" :key="product.id">
+            {{ product.product?.name || 'Producto desconocido' }} - {{ product.quantity }}
+          </li>
+        </ul>
+        <p>
+          <strong>Estado del Envío:</strong>
+          {{ selectedOrder.shipmentStatus === 1 ? "Enviado" : "Sin enviar" }}
+        </p>
+      </div>
+    </b-modal>
+
+    <!-- Modal para crear envíos -->
+    <b-modal v-model="showCreateShipmentModalFlag" title="Crear Envío" @hide="resetShipmentForm">
+      <b-form @submit.prevent="createShipment">
+        <b-form-group label="Fecha de Envío">
+          <input
+            type="date"
+            v-model="newShipment.shipping_day"
+            :min="new Date().toISOString().split('T')[0]"  
+            required
+          />
+        </b-form-group>
+
+        <b-button type="submit" variant="success">Crear Envío</b-button>
+      </b-form>
+    </b-modal>
   </div>
 </template>
 
@@ -88,92 +119,146 @@ export default defineComponent({
   name: "Orders",
   components: { Navbar, Sidebar },
   setup() {
-  const isSidebarOpen = ref(false);
-  const toggleSidebar = () => {
+    const isSidebarOpen = ref(false);
+    const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
-  const alert = reactive({ show: false, message: "", type: "success" });
-  const orders = ref([]);
-  const searchQuery = ref(""); // Texto del buscador
-  const currentPage = ref(1); // Página actual
-  const itemsPerPage = ref(10); // Cantidad de órdenes por página
 
-  const fields = [
-    { key: "idOrden", label: "ID de Orden", sortable: true },
-    { key: "total", label: "Total", sortable: true },
-    { key: "ordenProducts", label: "Productos de la Orden", sortable: true },
-    { key: "shipmentStatus", label: "Estado del Envío", sortable: true },
-    { key: "actions", label: "Acciones" },
-  ];
-
-  const filteredOrders = computed(() => {
-    // Filtra las órdenes según el texto del buscador
-    return orders.value.filter((order: any) => {
-      return (
-        order.idOrden.toString().includes(searchQuery.value) ||
-        order.total.toString().includes(searchQuery.value) ||
-        (order.ordenProducts && Array.isArray(order.ordenProducts)
-          ? order.ordenProducts
-              .map((product: any) => product.product?.name || "Producto desconocido")
-              .join(", ")
-              .toLowerCase()
-              .includes(searchQuery.value.toLowerCase())
-          : false)
-      );
+    const alert = reactive({ show: false, message: "", type: "success" });
+    const orders = ref([]);
+    const searchQuery = ref(""); // Texto del buscador
+    const currentPage = ref(1); // Página actual
+    const itemsPerPage = ref(10); // Cantidad de órdenes por página
+    const showOrderModal = ref(false); // Control del modal de detalles
+    const selectedOrder = ref<any>(null); // Orden seleccionada
+    const showCreateShipmentModalFlag = ref(false); // Control del modal de envío
+    const newShipment = reactive<{ shipping_day: string; idOrden: number | null }>({
+      shipping_day: "",
+      idOrden: null,
     });
-  });
 
-  const paginatedOrders = computed(() => {
-    // Devuelve las órdenes correspondientes a la página actual
-    const start = (currentPage.value - 1) * itemsPerPage.value;
-    const end = start + itemsPerPage.value;
-    return filteredOrders.value.slice(start, end);
-  });
+    const fields = [
+      { key: "idOrden", label: "ID de Orden", sortable: true },
+      { key: "total", label: "Total", sortable: true },
+      { key: "ordenProducts", label: "Productos de la Orden", sortable: true },
+      { key: "shipmentStatus", label: "Estado del Envío", sortable: true },
+    ];
 
-  const fetchOrders = async () => {
-    try {
-      const responseOrders = await apiOrden.getAllOrdenes();
-      const responseShipments = await apiShipments.getAllShipments();
+    const showOrderDetails = (order: any) => {
+      selectedOrder.value = order;
+      showOrderModal.value = true;
+    };
 
-      const ordersData = responseOrders.response?.pedidosUsuario || [];
-      const shipmentsData = responseShipments.response?.shipments || [];
+    const showCreateShipmentModal = (order: any) => {
+      newShipment.idOrden = order.idOrden;
+      showCreateShipmentModalFlag.value = true;
+    };
 
-      const shipmentMap = new Map(
-        shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
-      );
+    const createShipment = async () => {
+      if (!newShipment.idOrden || !newShipment.shipping_day) {
+        alert.show = true;
+        alert.message = "Por favor completa todos los campos.";
+        alert.type = "danger";
+        return;
+      }
 
-      orders.value = ordersData.map((order: any) => ({
-        ...order,
-        shipmentStatus: shipmentMap.get(order.idOrden) || 0,
-      }));
-    } catch (error) {
-      console.error("Error al cargar órdenes:", error);
-      alert.show = true;
-      alert.message = "Error al cargar las órdenes o envíos.";
-      alert.type = "danger";
-    }
-  };
+      try {
+        const response = await apiShipments.createShipment({
+          idOrden: newShipment.idOrden,
+          shipping_day: newShipment.shipping_day,
+        });
+        alert.message = response.message || "Envío creado exitosamente.";
+        alert.type = "success";
+        showCreateShipmentModalFlag.value = false;
+        fetchOrders(); // Actualizar las órdenes
+      } catch (error) {
+        alert.message = "Error al crear el envío.";
+        alert.type = "danger";
+      } finally {
+        alert.show = true;
+      }
+    };
 
-  onMounted(() => {
-    fetchOrders();
-  });
+    const resetShipmentForm = () => {
+      newShipment.shipping_day = "";
+      newShipment.idOrden = null;
+    };
 
-  return {
-    isSidebarOpen,
-    alert,
-    orders,
-    fields,
-    searchQuery,
-    currentPage,
-    itemsPerPage,
-    filteredOrders,
-    paginatedOrders,
-    toggleSidebar
-  };
-}
+    const fetchOrders = async () => {
+      try {
+        const responseOrders = await apiOrden.getAllOrdenes();
+        const responseShipments = await apiShipments.getAllShipments();
 
+        const ordersData = responseOrders.response?.pedidosUsuario || [];
+        const shipmentsData = responseShipments.response?.shipments || [];
+
+        const shipmentMap = new Map(
+          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+        );
+
+        orders.value = ordersData.map((order: any) => ({
+          ...order,
+          shipmentStatus: shipmentMap.get(order.idOrden) || 0,
+        }));
+      } catch (error) {
+        console.error("Error al cargar órdenes:", error);
+        alert.show = true;
+        alert.message = "Error al cargar las órdenes o envíos.";
+        alert.type = "danger";
+      }
+    };
+
+    const filteredOrders = computed(() => {
+      return orders.value.filter((order: any) => {
+        return (
+          order.idOrden.toString().includes(searchQuery.value) ||
+          order.total.toString().includes(searchQuery.value) ||
+          (order.ordenProducts && Array.isArray(order.ordenProducts)
+            ? order.ordenProducts
+                .map((product: any) => product.product?.name || "Producto desconocido")
+                .join(", ")
+                .toLowerCase()
+                .includes(searchQuery.value.toLowerCase())
+            : false)
+        );
+      });
+    });
+
+    const paginatedOrders = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage.value;
+      const end = start + itemsPerPage.value;
+      return filteredOrders.value.slice(start, end);
+    });
+
+    onMounted(() => {
+      fetchOrders();
+    });
+
+    return {
+      isSidebarOpen,
+      toggleSidebar,
+      alert,
+      orders,
+      fields,
+      searchQuery,
+      currentPage,
+      itemsPerPage,
+      filteredOrders,
+      paginatedOrders,
+      showOrderModal,
+      selectedOrder,
+      showOrderDetails,
+      showCreateShipmentModalFlag,
+      showCreateShipmentModal,
+      newShipment,
+      createShipment,
+      resetShipmentForm,
+    };
+  },
 });
 </script>
+
+
 
 <style scoped>
 .header {
