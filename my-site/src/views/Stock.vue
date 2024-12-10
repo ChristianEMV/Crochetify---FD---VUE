@@ -687,7 +687,7 @@ const removeImage = (index: number) => {
 
 .search-icon {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 10px;
   transform: translateY(-50%);
   color: #aaa;

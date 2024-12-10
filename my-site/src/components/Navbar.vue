@@ -29,12 +29,6 @@
         <img src="/src/assets/CrochetifyLogo.png" alt="App Icon" class="app-icon" />
       </router-link>
     </div>
-
-    <div class="navbar-right">
-      <button class="notification-button">
-        <i class="fas fa-bell"></i>
-      </button>
-    </div>
   </nav>
 </template>
 
