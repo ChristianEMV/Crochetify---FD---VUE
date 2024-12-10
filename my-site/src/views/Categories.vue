@@ -1,33 +1,31 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar"/>
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar" />
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-layer-group"></i> Categorías</h3>
-        
-        <h6>Gestión de las categoría</h6>
+        <h6>Gestión de las categorías</h6>
       </div>
     </div>
 
     <transition name="fade">
-  <div
-    v-if="alert.show"
-    :class="`alert alert-${alert.type} alert-dismissible fade show`"
-    role="alert"
-  >
-    <strong>{{ alert.type === 'success' ? '¡Éxito!' : '¡Error!' }}</strong>
-    {{ alert.message }}
-    <button
-      type="button"
-      class="btn-close"
-      data-bs-dismiss="alert"
-      aria-label="Close"
-      @click="alert.show = false"
-    ></button>
-  </div>
-</transition>
-
+      <div
+        v-if="alert.show"
+        :class="`alert alert-${alert.type} alert-dismissible fade show`"
+        role="alert"
+      >
+        <strong>{{ alert.type === 'success' ? '¡Éxito!' : '¡Error!' }}</strong>
+        {{ alert.message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+          @click="alert.show = false"
+        ></button>
+      </div>
+    </transition>
 
     <div class="table-container">
       <h3 class="mb-4">Tabla de Categorías</h3>
@@ -38,10 +36,10 @@
         <div class="search-input-container">
           <i class="fas fa-search search-icon"></i>
           <b-form-input
-          v-model="searchQuery"
-          placeholder="Buscar..."
-          class="search-input"
-        ></b-form-input>
+            v-model="searchQuery"
+            placeholder="Buscar..."
+            class="search-input"
+          ></b-form-input>
         </div>
       </div>
 
@@ -56,7 +54,7 @@
                 placeholder="Introduce el nombre de la categoría"
               ></b-form-input>
             </b-form-group>
-            <br>
+            <br />
             <div class="button-group">
               <b-button variant="danger" @click="toggleCreateForm">Cancelar</b-button>
               <b-button variant="success" type="submit">Guardar</b-button>
@@ -67,17 +65,19 @@
 
       <transition name="fade">
         <div v-if="showEditForm" class="mb-4 form-container">
-          <b-form @submit.prevent="updateCategoryStatus">
+          <b-form @submit.prevent="updateCategoryName">
             <b-form-group label="ID de la Categoría:">
               <p>{{ editCategoryData.id }}</p>
             </b-form-group>
-            <b-form-group label="Nombre de la Categoría">
-              <p>{{ editCategoryData.name }}</p>
+            <b-form-group label="Nuevo Nombre de la Categoría" label-for="edit-category-name-input">
+              <b-form-input
+                id="edit-category-name-input"
+                v-model="editCategoryData.name"
+                required
+                placeholder="Introduce el nuevo nombre"
+              ></b-form-input>
             </b-form-group>
-            <b-form-group label="Estado de la Categoría">
-              <b-form-select v-model="editCategoryData.status" :options="['Activo', 'Deshabilitada']"></b-form-select>
-            </b-form-group>
-            <br>
+            <br />
             <div class="button-group">
               <b-button variant="danger" @click="toggleEditForm">Cancelar</b-button>
               <b-button variant="success" type="submit">Guardar Cambios</b-button>
@@ -95,10 +95,7 @@
           <span>{{ row.item.id }}</span>
         </template>
         <template #cell(name)="row">
-          <span @click="openCategoryModal(row.item)" class="category-name">{{ row.item.name }}</span>
-        </template>
-        <template #cell(status)="row">
-          <span>{{ row.item.status ? 'Habilitada' : 'Deshabilitada' }}</span>
+          <span>{{ row.item.name }}</span>
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
@@ -115,19 +112,18 @@
         </template>
       </b-table>
       <b-pagination
-  v-model="currentPage"
-  :total-rows="filteredCategories.length"
-  :per-page="itemsPerPage"
-  aria-controls="category-table"
-  class="mt-3 justify-content-center"
-></b-pagination>
+        v-model="currentPage"
+        :total-rows="filteredCategories.length"
+        :per-page="itemsPerPage"
+        aria-controls="category-table"
+        class="mt-3 justify-content-center"
+      ></b-pagination>
     </div>
 
     <b-modal v-model="showCategoryModal" title="Detalles de la Categoría" hide-footer>
       <div v-if="selectedCategory">
         <p><strong>ID:</strong> {{ selectedCategory.id }}</p>
         <p><strong>Nombre:</strong> {{ selectedCategory.name }}</p>
-        <p><strong>Estado:</strong> {{ selectedCategory.status ? 'Habilitada' : 'Deshabilitada' }}</p>
       </div>
     </b-modal>
   </div>
@@ -149,20 +145,20 @@ export default defineComponent({
     const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
     const newCategoryData = reactive({ name: "" });
-    const editCategoryData = reactive({ id: 0, name: "", status: "Activo" });
+    const editCategoryData = reactive({ id: 0, name: "" });
     const categories = ref([]);
     const searchQuery = ref("");
     const showCategoryModal = ref(false);
-    const selectedCategory = ref<{ id: number; name: string; status: boolean } | null>(null);
+    const selectedCategory = ref<{ id: number; name: string } | null>(null);
     const currentPage = ref(1); // Página actual
     const itemsPerPage = ref(10); // Elementos por página
 
-    // Computar las categorías paginadas
     const paginatedCategories = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage.value;
       const end = start + itemsPerPage.value;
       return filteredCategories.value.slice(start, end);
     });
+
     const toggleSidebar = () => {
       isSidebarOpen.value = !isSidebarOpen.value;
     };
@@ -170,70 +166,41 @@ export default defineComponent({
     const toggleCreateForm = () => {
       showCreateForm.value = !showCreateForm.value;
       newCategoryData.name = "";
-      if (showCreateForm.value) {
-        showEditForm.value = false;
-      }
     };
 
     const toggleEditForm = () => {
       showEditForm.value = !showEditForm.value;
       editCategoryData.id = 0;
       editCategoryData.name = "";
-      editCategoryData.status = "Activo";
     };
 
     const createCategory = async () => {
-      if (validateCategoryName(newCategoryData.name)) {
-        try {
-          await categoryApi.createCategory({ name: newCategoryData.name });
-          await fetchCategories();
-          showAlert("Categoría creada con éxito", "success");
-          showCreateForm.value = false;
-          newCategoryData.name = "";
-        } catch (error) {
-          showAlert("Error al crear la categoría", "danger");
-          console.error("Error al crear la categoría:", error);
-        }
-      } else {
-        showAlert("El nombre de la categoría solo debe contener letras", "danger");
+      try {
+        await categoryApi.createCategory({ name: newCategoryData.name });
+        await fetchCategories();
+        showAlert("Categoría creada con éxito", "success");
+        showCreateForm.value = false;
+      } catch (error) {
+        showAlert("Error al crear la categoría", "danger");
+        console.error("Error al crear la categoría:", error);
       }
     };
 
     const openEditForm = (category: any) => {
-      setTimeout(() => {
-        const editFormElement = document.querySelector(".form-container");
-        editFormElement?.scrollIntoView({ behavior: "smooth" });
-      }, 0);
-      showCreateForm.value = false;
-      if(!category.id){
-        console.error("ID de la categoría no encontrado", category);
-        return;
-      }
       editCategoryData.id = category.id;
       editCategoryData.name = category.name;
-      editCategoryData.status = category.status;
       showEditForm.value = true;
     };
 
-    const openCategoryModal = (category: any) => {
-      selectedCategory.value = category;
-      showCategoryModal.value = true;
-    };
-
-    const updateCategoryStatus = async () => {
-      if (validateCategoryName(editCategoryData.name)) {
-        try {
-          const status = editCategoryData.status === 'Activo';
-          await categoryApi.updateCategoryStatus(editCategoryData.id, status);
-          await fetchCategories();
-          showAlert("Estado de la categoría actualizado con éxito", "success");
-          showEditForm.value = false;
-        } catch (error) {
-          showAlert("Error al actualizar el estado de la categoría", "danger");
-          console.error("Error al actualizar el estado de la categoría:", error);
-        }
-      } else {
-        showAlert("El nombre de la categoría solo debe contener letras", "danger");
+    const updateCategoryName = async () => {
+      try {
+        await categoryApi.updateCategoryName(editCategoryData.id, { name: editCategoryData.name });
+        await fetchCategories();
+        showAlert("Nombre de la categoría actualizado con éxito", "success");
+        showEditForm.value = false;
+      } catch (error) {
+        showAlert("Error al actualizar el nombre de la categoría", "danger");
+        console.error("Error al actualizar el nombre de la categoría:", error);
       }
     };
 
@@ -241,12 +208,10 @@ export default defineComponent({
       try {
         isLoading.value = true;
         const data = await categoryApi.getAllCategories();
-        const allCategories = Array.isArray(data.response.categories) ? data.response.categories.map((cat: { idCategory: any; name: any; status: any; }) => ({
+        categories.value = data.response.categories.map((cat: any) => ({
           id: cat.idCategory,
-          name: cat.name,
-          status: cat.status
-        })) : [];
-        categories.value = allCategories;
+          name: cat.name
+        }));
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];
@@ -260,36 +225,28 @@ export default defineComponent({
     });
 
     const fields = [
-      { key: "id", label: "ID", sortable:true },
-      { key: "name", label: "Nombre de Categoría", sortable:true },
-      { key: "status", label: "Estado", sortable:true },
-      { key: "actions", label: "Acciones", }
+      { key: "id", label: "ID", sortable: true },
+      { key: "name", label: "Nombre de Categoría", sortable: true },
+      { key: "actions", label: "Acciones" }
     ];
 
     const filteredCategories = computed(() => {
-      return categories.value.filter((category: { id: number; name: string; status: boolean }) => {
+      return categories.value.filter((category: { id: number; name: string }) => {
         return (
           category.id.toString().includes(searchQuery.value) ||
-          category.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          (category.status ? 'Habilitada' : 'Deshabilitada').toLowerCase().includes(searchQuery.value.toLowerCase())
+          category.name.toLowerCase().includes(searchQuery.value.toLowerCase())
         );
       });
     });
 
     const showAlert = (message: string, type: string) => {
-  alert.message = message;
-  alert.type = type;
-  alert.show = true;
-  setTimeout(() => {
-    alert.show = false;
-  }, 5000);
-};
-
-
-const validateCategoryName = (name: string) => {
-  const regex = /^[\s\S]*$/;
-  return regex.test(name);
-};
+      alert.message = message;
+      alert.type = type;
+      alert.show = true;
+      setTimeout(() => {
+        alert.show = false;
+      }, 5000);
+    };
 
     return {
       isSidebarOpen,
@@ -305,24 +262,20 @@ const validateCategoryName = (name: string) => {
       toggleEditForm,
       createCategory,
       openEditForm,
-      openCategoryModal,
-      updateCategoryStatus,
+      updateCategoryName,
       fetchCategories,
       isLoading,
       showCategoryModal,
       selectedCategory,
       searchQuery,
       filteredCategories,
-      showAlert,
-      validateCategoryName,
       paginatedCategories,
       currentPage,
-      itemsPerPage,
+      itemsPerPage
     };
-  },
+  }
 });
 </script>
-
 <style scoped>
 .header {
   width: 100%;
