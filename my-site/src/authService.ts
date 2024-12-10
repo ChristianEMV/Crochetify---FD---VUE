@@ -5,7 +5,7 @@ class AuthService {
 
   constructor() {
     this.instance = axios.create({
-      baseURL: 'http://100.27.71.83:8087/api/crochetify',
+      baseURL: 'http://54.146.53.211:8087/api/crochetify',
       //baseURL: 'http://localhost:8080/api/crochetify',
       headers: {
         'Content-Type': 'application/json',

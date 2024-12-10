@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" />
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar"/>
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-truck"></i> Envíos</h3>

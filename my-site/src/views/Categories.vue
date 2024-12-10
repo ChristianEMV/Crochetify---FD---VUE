@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" />
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar"/>
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-layer-group"></i> Categorías</h3>
@@ -11,10 +11,23 @@
     </div>
 
     <transition name="fade">
-      <b-alert v-if="alert.show" :variant="alert.type" dismissible @dismissed="alert.show = false" class="alert-bottom-left">
-        {{ alert.message }}
-      </b-alert>
-    </transition>
+  <div
+    v-if="alert.show"
+    :class="`alert alert-${alert.type} alert-dismissible fade show`"
+    role="alert"
+  >
+    <strong>{{ alert.type === 'success' ? '¡Éxito!' : '¡Error!' }}</strong>
+    {{ alert.message }}
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+      @click="alert.show = false"
+    ></button>
+  </div>
+</transition>
+
 
     <div class="table-container">
       <h3 class="mb-4">Tabla de Categorías</h3>
@@ -157,6 +170,9 @@ export default defineComponent({
     const toggleCreateForm = () => {
       showCreateForm.value = !showCreateForm.value;
       newCategoryData.name = "";
+      if (showCreateForm.value) {
+        showEditForm.value = false;
+      }
     };
 
     const toggleEditForm = () => {
@@ -184,6 +200,11 @@ export default defineComponent({
     };
 
     const openEditForm = (category: any) => {
+      setTimeout(() => {
+        const editFormElement = document.querySelector(".form-container");
+        editFormElement?.scrollIntoView({ behavior: "smooth" });
+      }, 0);
+      showCreateForm.value = false;
       if(!category.id){
         console.error("ID de la categoría no encontrado", category);
         return;
@@ -256,18 +277,19 @@ export default defineComponent({
     });
 
     const showAlert = (message: string, type: string) => {
-      alert.message = message;
-      alert.type = type;
-      alert.show = true;
-      setTimeout(() => {
-        alert.show = false;
-      }, 5000);
-    };
+  alert.message = message;
+  alert.type = type;
+  alert.show = true;
+  setTimeout(() => {
+    alert.show = false;
+  }, 5000);
+};
 
-    const validateCategoryName = (name: string) => {
-      const regex = /^[A-Za-z]+$/;
-      return regex.test(name);
-    };
+
+const validateCategoryName = (name: string) => {
+  const regex = /^[\s\S]*$/;
+  return regex.test(name);
+};
 
     return {
       isSidebarOpen,

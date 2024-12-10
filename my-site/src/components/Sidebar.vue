@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -59,7 +59,13 @@ export default defineComponent({
       default: false
     }
   },
-  setup() {
+  emits: ["update:isOpen"], // Emite evento para actualizar el estado del sidebar
+  methods: {
+    toggle() {
+      this.$emit("update:isOpen", !this.isOpen); // Cambia el estado y emite el evento
+    },
+  },
+  setup(props, { emit }) {
     const router = useRouter();
     const activeMenu = ref('');
     const isResourceOpen = ref(false);
@@ -81,12 +87,33 @@ export default defineComponent({
       router.push({ name: route });
     };
 
-    
     const logout = () => {
       localStorage.removeItem("authToken");
-
       router.push("/login");
     };
+
+    const handleClickOutside = (event: MouseEvent) => {
+  const sidebarElement = document.querySelector(".sidebar");
+  const screenWidth = window.innerWidth;
+  const clickX = event.clientX;
+  if (!props.isOpen) {
+    return;
+  }
+  const rightSideThreshold = screenWidth * 0.2;
+  const clickedOnRightSide = clickX > rightSideThreshold;  
+  if (sidebarElement && !sidebarElement.contains(event.target as Node) && clickedOnRightSide) {
+    emit("update:isOpen", false); 
+  }
+};
+
+    onMounted(() => {
+
+      document.addEventListener("click", handleClickOutside);
+    });
+
+    onUnmounted(() => {
+      document.removeEventListener("click", handleClickOutside);
+    });
 
     return {
       activeMenu,

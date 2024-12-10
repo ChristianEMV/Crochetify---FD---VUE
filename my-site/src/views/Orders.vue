@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" />
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar" />
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-box"></i> Órdenes</h3>
@@ -13,19 +13,19 @@
       {{ alert.message }}
     </b-alert>
 
-    <!-- Buscador -->
-    <div class="mb-3">
-      <b-form-group label="Buscar órdenes:">
-        <b-form-input
-          v-model="searchQuery"
-          placeholder="Buscar por ID o Producto..."
-        ></b-form-input>
-      </b-form-group>
-    </div>
-
     <!-- Tabla con paginación -->
     <div class="table-container">
       <h3 class="mb-4">Resumen de Órdenes</h3>
+
+      <!-- Buscador -->
+      <div class="search-input-container">
+        <i class="fas fa-search search-icon"></i>
+        <b-form-input
+          v-model="searchQuery"
+          placeholder="Buscar por ID o Producto..."
+          class="search-input"
+        ></b-form-input>
+      </div>
       <b-table
         :items="filteredOrders"
         :fields="fields"
@@ -47,43 +47,60 @@
         </template>
 
         <template #cell(ordenProducts)="row">
-          {{ row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
-            ? row.item.ordenProducts
-                .map((product: any) => product.product?.name || 'Producto desconocido')
-                .join(', ')
-            : 'No hay productos' }}
+          {{
+            row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
+              ? row.item.ordenProducts
+                  .map(
+                    (product: any) =>
+                      product.product?.name || "Producto desconocido"
+                  )
+                  .join(", ")
+              : "No hay productos"
+          }}
         </template>
 
         <template #cell(shipmentStatus)="row">
           <span
-            :class="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2 ? 'text-success' : ''"
+            :class="
+              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+                ? 'text-success'
+                : ''
+            "
           >
-            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
-              ? 'Enviado'
-              : 'Sin enviar' }}
+            {{
+              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+                ? "Enviado"
+                : "Sin enviar"
+            }}
           </span>
         </template>
 
         <template #cell(actions)="row">
           <b-button
-            :disabled="row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2"
+            :disabled="
+              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+            "
             variant="success"
             @click="showCreateShipmentModal(row.item)"
           >
-            {{ row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
-              ? 'Enviado'
-              : 'Enviar' }}
+            {{
+              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+                ? "Enviado"
+                : "Enviar"
+            }}
           </b-button>
         </template>
       </b-table>
 
       <!-- Paginador -->
-      <b-pagination
-        v-model="currentPage"
-        :total-rows="filteredOrders.length"
-        :per-page="perPage"
-        aria-controls="my-table"
-      ></b-pagination>
+      <div class="d-flex justify-content-center mt-3">
+        <b-pagination
+          v-model="currentPage"
+          :total-rows="filteredOrders.length"
+          :per-page="perPage"
+          aria-controls="my-table"
+        ></b-pagination>
+      </div>
     </div>
 
     <!-- Modal para crear un shipment (enviar) -->
@@ -122,14 +139,18 @@
             v-for="product in selectedOrder.ordenProducts || []"
             :key="product.product?.id || product.id"
           >
-            {{ product.product?.name || 'Producto desconocido' }} - {{ product.quantity }}
+            {{ product.product?.name || "Producto desconocido" }} -
+            {{ product.quantity }}
           </li>
         </ul>
         <p>
           <strong>Estado del Envío:</strong>
-          {{ selectedOrder.shipmentStatus === 1 || selectedOrder.shipmentStatus === 2
-            ? 'Enviado'
-            : 'No enviado' }}
+          {{
+            selectedOrder.shipmentStatus === 1 ||
+            selectedOrder.shipmentStatus === 2
+              ? "Enviado"
+              : "No enviado"
+          }}
         </p>
       </div>
       <div v-else>
@@ -186,7 +207,10 @@ export default defineComponent({
         const shipmentsData = responseShipments.response?.shipments || [];
 
         const shipmentMap = new Map(
-          shipmentsData.map((shipment: any) => [shipment.idOrden, shipment.status || 0])
+          shipmentsData.map((shipment: any) => [
+            shipment.idOrden,
+            shipment.status || 0,
+          ])
         );
 
         orders.value = ordersData.map((order: any) => ({
@@ -282,9 +306,6 @@ export default defineComponent({
   },
 });
 </script>
-
-
-
 
 <style scoped>
 .search-container {

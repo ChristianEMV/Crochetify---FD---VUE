@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" />
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar" />
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-box"></i> Stock</h3>
@@ -10,15 +10,21 @@
     </div>
 
     <transition name="fade">
-      <b-alert
+      <div
         v-if="alert.show"
-        :variant="alert.type"
-        dismissible
-        @dismissed="alert.show = false"
-        class="alert-bottom-left"
+        :class="['alert', `alert-${alert.type}`, 'alert-dismissible', 'fade', 'show']"
+        role="alert"
       >
+        <strong>{{ alert.type === "success" ? "¡Éxito!" : "¡Error!" }}</strong>
         {{ alert.message }}
-      </b-alert>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+          @click="alert.show = false"
+        ></button>
+      </div>
     </transition>
 
     <div class="table-container">
@@ -102,17 +108,17 @@
                 Arrastra y suelta las imágenes aquí
               </div>
               <div class="image-preview">
-                <img
-                  v-for="(image, index) in newStockData.images"
-                  :key="index"
-                  :src="image"
-                  type="file"
-                  accept=".png, .jpg, .jpeg"
-                  multiple
-                  @change="handleImageUpload"
-                  class="preview-image"
-                />
-              </div>
+  <div
+    v-for="(image, index) in newStockData.images"
+    :key="index"
+    class="preview-image-container"
+  >
+    <img :src="image" class="preview-image" />
+    <!-- Botón para eliminar imágenes -->
+    <button @click="removeImage(index)" class="remove-button">X</button>
+  </div>
+</div>
+
             </b-form-group>
             <br />
             <div class="button-group">
@@ -144,6 +150,7 @@
                 id="edit-price-input"
                 v-model="editStockData.price"
                 type="number"
+                min="1"
                 required
                 placeholder="Introduce el precio"
               ></b-form-input>
@@ -153,6 +160,7 @@
                 id="edit-quantity-input"
                 v-model="editStockData.quantity"
                 type="number"
+                min="1"
                 required
                 placeholder="Introduce la cantidad"
               ></b-form-input>
@@ -166,13 +174,19 @@
                 @change="handleEditImageUpload"
               />
               <div
-                class="drop-area"
-                @dragover.prevent
-                @drop.prevent="handleEditDrop"
-                @change="handleImageUpload"
-              >
-                Arrastra y suelta las imágenes aquí
-              </div>
+  class="drop-area"
+  @dragover.prevent
+  @drop.prevent="handleEditDrop"
+>
+  Arrastra y suelta las imágenes aquí
+</div>
+<div class="image-preview">
+  <div v-for="(image, index) in editStockData.images" :key="index" class="preview-image-container">
+    <img :src="image" class="preview-image" />
+    <button @click="removeEditImage(index)" class="remove-button">X</button>
+  </div>
+</div>
+
             </b-form-group>
             <br />
             <div class="button-group">
@@ -233,12 +247,12 @@
         </template>
       </b-table>
       <b-pagination
-  v-model="currentPage"
-  :total-rows="filterStocks.length"
-  :per-page="itemsPerPage"
-  aria-controls="category-table"
-  class="mt-3 justify-content-center"
-></b-pagination>
+        v-model="currentPage"
+        :total-rows="filterStocks.length"
+        :per-page="itemsPerPage"
+        aria-controls="category-table"
+        class="mt-3 justify-content-center"
+      ></b-pagination>
     </div>
 
     <b-modal
@@ -299,6 +313,14 @@ export default defineComponent({
     const alert = reactive({ show: false, message: "", type: "success" });
     const currentPage = ref(1); // Página actual
     const itemsPerPage = ref(10); // Elementos por página
+    const showAlert = (message: string, type: string) => {
+      alert.message = message;
+      alert.type = type;
+      alert.show = true;
+      setTimeout(() => {
+        alert.show = false;
+      }, 5000);
+    };
 
     // Computar las categorías paginadas
     const paginatedStock = computed(() => {
@@ -341,6 +363,9 @@ export default defineComponent({
 
     const toggleCreateForm = () => {
       showCreateForm.value = !showCreateForm.value;
+      if (showCreateForm.value) {
+    showEditForm.value = false;
+  }
       resetForm();
     };
 
@@ -427,6 +452,15 @@ export default defineComponent({
       }
     };
 
+    const removeEditImage = (index: number) => {
+  editStockData.images.splice(index, 1);
+};
+
+const removeImage = (index: number) => {
+  newStockData.images.splice(index, 1);
+};
+
+
     const fetchStocks = async () => {
       try {
         isLoading.value = true;
@@ -480,8 +514,13 @@ export default defineComponent({
       editStockData.color = stock.color;
       editStockData.price = stock.price;
       editStockData.quantity = stock.quantity;
+      showCreateForm.value = false;
       editStockData.images = []; // Limpiar las imágenes al abrir el formulario de edición
       showEditForm.value = true;
+      setTimeout(() => {
+        const editFormElement = document.querySelector(".form-container");
+        editFormElement?.scrollIntoView({ behavior: "smooth" });
+      },0);
     };
 
     const openStockModal = (stock: any) => {
@@ -535,18 +574,19 @@ export default defineComponent({
     };
 
     const handleEditDrop = (event: DragEvent) => {
-      const files = event.dataTransfer?.files;
-      if (files) {
-        for (let i = 0; i < files.length; i++) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            // Aquí solo agregamos las URLs o identificadores de las imágenes
-            editStockData.images.push((e.target?.result as string) || "");
-          };
-          reader.readAsDataURL(files[i]);
-        }
-      }
-    };
+  const files = event.dataTransfer?.files;
+  if (files) {
+    for (let i = 0; i < files.length; i++) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // Agrega las imágenes al array editStockData.images
+        editStockData.images.push((e.target?.result as string) || "");
+      };
+      reader.readAsDataURL(files[i]);
+    }
+  }
+};
+
 
     const displayStockModal = (base64Image: string) => {
       const imageUrl = `data:image/jpeg;base64,${base64Image}`;
@@ -569,15 +609,27 @@ export default defineComponent({
     ];
 
     const filterStocks = computed(() => {
-      return stocks.value.filter((stock: { idStock: number; product: { name: string }; color: string; price: number; quantity: number }) => {
-        return (
-          stock.idStock.toString().includes(searchQuery.value) ||
-          stock.product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          stock.color.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          stock.price.toString().includes(searchQuery.value) ||
-          stock.quantity.toString().includes(searchQuery.value)
-        );
-      });
+      return stocks.value.filter(
+        (stock: {
+          idStock: number;
+          product: { name: string };
+          color: string;
+          price: number;
+          quantity: number;
+        }) => {
+          return (
+            stock.idStock.toString().includes(searchQuery.value) ||
+            stock.product.name
+              .toLowerCase()
+              .includes(searchQuery.value.toLowerCase()) ||
+            stock.color
+              .toLowerCase()
+              .includes(searchQuery.value.toLowerCase()) ||
+            stock.price.toString().includes(searchQuery.value) ||
+            stock.quantity.toString().includes(searchQuery.value)
+          );
+        }
+      );
     });
 
     return {
@@ -610,9 +662,12 @@ export default defineComponent({
       searchQuery,
       showStockModal,
       resetForm,
+      showAlert,
       paginatedStock,
       currentPage,
       itemsPerPage,
+      removeEditImage,
+      removeImage
     };
   },
 });
@@ -864,4 +919,5 @@ export default defineComponent({
 .b-form-group i {
   margin-right: 5px;
 }
+
 </style>

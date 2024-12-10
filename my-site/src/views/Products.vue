@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar :isOpen="isSidebarOpen" />
+    <Sidebar :isOpen="isSidebarOpen" @update:isOpen="toggleSidebar"/>
     <div class="header" :class="{ 'header-collapsed': isSidebarOpen }">
       <div class="header-wrapper">
         <h3><i class="fas fa-box"></i> Productos</h3>
@@ -10,30 +10,51 @@
     </div>
 
     <transition name="fade">
-      <b-alert v-if="alert.show" :variant="alert.type" dismissible @dismissed="alert.show = false" class="alert-bottom-left">
+      <div
+        v-if="alert.show"
+        :class="[
+          'alert',
+          `alert-${alert.type}`,
+          'alert-dismissible',
+          'fade',
+          'show',
+        ]"
+        role="alert"
+      >
+        <strong>{{ alert.type === "success" ? "¡Éxito!" : "¡Error!" }}</strong>
         {{ alert.message }}
-      </b-alert>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+          @click="alert.show = false"
+        ></button>
+      </div>
     </transition>
 
     <div class="table-container">
       <h3 class="mb-4">Tabla de Productos</h3>
       <div class="d-flex mb-3">
         <b-button variant="primary" class="mb-3" @click="toggleCreateForm">
-        <i class="fas fa-plus"></i> Agregar Producto
-      </b-button>
-      <div class="search-input-container">
+          <i class="fas fa-plus"></i> Agregar Producto
+        </b-button>
+        <div class="search-input-container">
           <i class="fas fa-search search-icon"></i>
           <b-form-input
-          v-model="searchQuery"
-          placeholder="Buscar..."
-          class="search-input"
-        ></b-form-input>
+            v-model="searchQuery"
+            placeholder="Buscar..."
+            class="search-input"
+          ></b-form-input>
         </div>
       </div>
       <transition name="fade">
         <div v-if="showCreateForm" class="mb-4 form-container">
           <b-form @submit.prevent="createProduct">
-            <b-form-group label="Nombre del Producto" label-for="product-name-input">
+            <b-form-group
+              label="Nombre del Producto"
+              label-for="product-name-input"
+            >
               <b-form-input
                 id="product-name-input"
                 v-model="newProductData.name"
@@ -41,15 +62,22 @@
                 placeholder="Introduce el nombre del producto"
               ></b-form-input>
             </b-form-group>
-            <b-form-group label="Descripción del Producto" label-for="product-description-input">
-              <b-form-input
+            <b-form-group
+              label="Descripción del Producto"
+              label-for="product-description-input"
+            >
+              <b-form-textarea
                 id="product-description-input"
                 v-model="newProductData.description"
                 required
                 placeholder="Introduce la descripción del producto"
-              ></b-form-input>
+                rows="3"
+              ></b-form-textarea>
             </b-form-group>
-            <b-form-group label="Categorías" label-for="product-categories-input">
+            <b-form-group
+              label="Categorías"
+              label-for="product-categories-input"
+            >
               <b-form-checkbox-group
                 id="product-categories-input"
                 v-model="newProductData.categoryIds"
@@ -58,9 +86,11 @@
                 stacked
               ></b-form-checkbox-group>
             </b-form-group>
-            <br>
+            <br />
             <div class="button-group">
-              <b-button variant="danger" @click="toggleCreateForm">Cancelar</b-button>
+              <b-button variant="danger" @click="toggleCreateForm"
+                >Cancelar</b-button
+              >
               <b-button variant="success" type="submit">Guardar</b-button>
             </div>
           </b-form>
@@ -81,11 +111,12 @@
               ></b-form-input>
             </b-form-group>
             <b-form-group label="Descripción del Producto">
-              <b-form-input
+              <b-form-textarea
                 v-model="editProductData.description"
                 required
                 placeholder="Introduce la descripción del producto"
-              ></b-form-input>
+                rows="3"
+              ></b-form-textarea>
             </b-form-group>
             <b-form-group label="Categorías">
               <b-form-checkbox-group
@@ -95,10 +126,14 @@
                 stacked
               ></b-form-checkbox-group>
             </b-form-group>
-            <br>
+            <br />
             <div class="button-group">
-              <b-button variant="danger" @click="toggleEditForm">Cancelar</b-button>
-              <b-button variant="success" type="submit">Guardar Cambios</b-button>
+              <b-button variant="danger" @click="toggleEditForm"
+                >Cancelar</b-button
+              >
+              <b-button variant="success" type="submit"
+                >Guardar Cambios</b-button
+              >
             </div>
           </b-form>
         </div>
@@ -107,18 +142,30 @@
       <div v-if="isLoading" class="spinner-container">
         <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
       </div>
-      <b-table v-else :items="paginatedProducts" :fields="fields" responsive striped hover small>
+      <b-table
+        v-else
+        :items="paginatedProducts"
+        :fields="fields"
+        responsive
+        striped
+        hover
+        small
+      >
         <template #cell(id)="row">
           <span>{{ row.item.id }}</span>
         </template>
         <template #cell(name)="row">
-          <span @click="openProductModal(row.item)" class="product-name">{{ row.item.name }}</span>
+          <span @click="openProductModal(row.item)" class="product-name">{{
+            row.item.name
+          }}</span>
         </template>
         <template #cell(description)="row">
           <span>{{ row.item.description }}</span>
         </template>
         <template #cell(categories)="row">
-          <span>{{ row.item.categories.map((category:any) => category.name).join(', ') }}</span>
+          <span>{{
+            row.item.categories.map((category: any) => category.name).join(", ")
+          }}</span>
         </template>
         <template #cell(actions)="row">
           <div class="d-flex justify-content-between">
@@ -136,20 +183,31 @@
       </b-table>
 
       <b-pagination
-  v-model="currentPage"
-  :total-rows="filteredProducts.length"
-  :per-page="itemsPerPage"
-  aria-controls="category-table"
-  class="mt-3 justify-content-center"
-></b-pagination>
+        v-model="currentPage"
+        :total-rows="filteredProducts.length"
+        :per-page="itemsPerPage"
+        aria-controls="category-table"
+        class="mt-3 justify-content-center"
+      ></b-pagination>
     </div>
 
-    <b-modal v-model="showProductModal" title="Detalles del Producto" hide-footer>
+    <b-modal
+      v-model="showProductModal"
+      title="Detalles del Producto"
+      hide-footer
+    >
       <div v-if="selectedProduct">
         <p><strong>ID:</strong> {{ selectedProduct.idProduct }}</p>
         <p><strong>Nombre:</strong> {{ selectedProduct.name }}</p>
         <p><strong>Descripción:</strong> {{ selectedProduct.description }}</p>
-        <p><strong>Categorías:</strong> {{ selectedProduct.categories.map(category => category.name).join(', ') }}</p>
+        <p>
+          <strong>Categorías:</strong>
+          {{
+            selectedProduct.categories
+              .map((category) => category.name)
+              .join(", ")
+          }}
+        </p>
       </div>
     </b-modal>
   </div>
@@ -176,18 +234,39 @@ export default defineComponent({
     const showEditForm = ref(false);
     const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
-    const newProductData = reactive({ name: "", description: "", categoryIds: [] as number[] });
-    const editProductData = reactive({ id: 0, name: "", description: "", categoryIds: [] as number[] });
+    const newProductData = reactive({
+      name: "",
+      description: "",
+      categoryIds: [] as number[],
+    });
+    const editProductData = reactive({
+      id: 0,
+      name: "",
+      description: "",
+      categoryIds: [] as number[],
+    });
     const products = ref([]);
     const categories = ref<Category[]>([]);
     const router = useRouter();
     const showProductModal = ref(false);
     const searchQuery = ref("");
-    const selectedProduct = ref<{ idProduct: number; name: string; description: string; categories: Category[] } | null>(null);
-    const currentPage = ref(1); // Página actual
-    const itemsPerPage = ref(10); // Elementos por página
+    const selectedProduct = ref<{
+      idProduct: number;
+      name: string;
+      description: string;
+      categories: Category[];
+    } | null>(null);
+    const currentPage = ref(1);
+    const itemsPerPage = ref(10);
+    const showAlert = (message: string, type: string) => {
+      alert.message = message;
+      alert.type = type;
+      alert.show = true;
+      setTimeout(() => {
+        alert.show = false;
+      }, 5000);
+    };
 
-    // Computar las categorías paginadas
     const paginatedProducts = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage.value;
       const end = start + itemsPerPage.value;
@@ -206,6 +285,9 @@ export default defineComponent({
       newProductData.name = "";
       newProductData.description = "";
       newProductData.categoryIds = [];
+      if (showCreateForm.value) {
+        showEditForm.value = false;
+      }
     };
 
     const toggleEditForm = () => {
@@ -240,27 +322,38 @@ export default defineComponent({
         console.error("Error al crear el producto:", error);
       }
     };
-
     const openEditForm = (product: any) => {
-  if (!product.idProduct) {
-    console.error("ID del producto no encontrado", product);
-    return;
-  }
-  editProductData.id = product.idProduct;
-  editProductData.name = product.name;
-  editProductData.description = product.description;
-  editProductData.categoryIds = product.categories
-    .filter((category: any) => category && category.id)
-    .map((category: any) => category.id);
-  showEditForm.value = true;
-};
+      setTimeout(() => {
+        const editFormElement = document.querySelector(".form-container");
+        editFormElement?.scrollIntoView({ behavior: "smooth" });
+      }, 0);
+      showCreateForm.value = false;
+      if (!product.idProduct) {
+        console.error("ID del producto no encontrado", product);
+        return;
+      }
+
+      // Actualiza editProductData completamente para garantizar reactividad
+      Object.assign(editProductData, {
+        id: product.idProduct,
+        name: product.name,
+        description: product.description,
+        categoryIds: product.categories
+          .filter((category: any) => category && category.id)
+          .map((category: any) => category.id),
+      });
+
+      showEditForm.value = true;
+
+      console.log("Datos para editar:", editProductData);
+    };
 
     const updateProduct = async () => {
       try {
         await productApi.updateProduct(editProductData.id, {
           name: editProductData.name,
           description: editProductData.description,
-          categoryIds: editProductData.categoryIds.filter(id => id !== null)
+          categoryIds: editProductData.categoryIds.filter((id) => id !== null),
         });
         await fetchProducts();
         alert.message = "Producto actualizado con éxito";
@@ -285,12 +378,21 @@ export default defineComponent({
       try {
         isLoading.value = true;
         const data = await productApi.getProducts();
-        const allProducts = Array.isArray(data.response.products) ? data.response.products.map((prod: { idProduct: any; name: any; description: any; categories: any; }) => ({
-          idProduct: prod.idProduct,
-          name: prod.name,
-          description: prod.description,
-          categories: prod.categories
-        })) : [];
+        const allProducts = Array.isArray(data.response.products)
+          ? data.response.products.map(
+              (prod: {
+                idProduct: any;
+                name: any;
+                description: any;
+                categories: any;
+              }) => ({
+                idProduct: prod.idProduct,
+                name: prod.name,
+                description: prod.description,
+                categories: prod.categories,
+              })
+            )
+          : [];
         products.value = allProducts;
       } catch (error) {
         console.error("Error al cargar los productos:", error);
@@ -300,23 +402,40 @@ export default defineComponent({
       }
     };
     const filteredProducts = computed(() => {
-      return products.value.filter((product: {idProduct: number, name: string, description: string, categories: Category[] }) => {
-        return (
-          product.idProduct.toString().includes(searchQuery.value) ||
-          product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchQuery.value.toLowerCase())||
-          product.categories.map((category: { name: string }) => category.name).join(', ').toLowerCase().includes(searchQuery.value.toLowerCase())
-        );
-      });
+      return products.value.filter(
+        (product: {
+          idProduct: number;
+          name: string;
+          description: string;
+          categories: Category[];
+        }) => {
+          return (
+            product.idProduct.toString().includes(searchQuery.value) ||
+            product.name
+              .toLowerCase()
+              .includes(searchQuery.value.toLowerCase()) ||
+            product.description
+              .toLowerCase()
+              .includes(searchQuery.value.toLowerCase()) ||
+            product.categories
+              .map((category: { name: string }) => category.name)
+              .join(", ")
+              .toLowerCase()
+              .includes(searchQuery.value.toLowerCase())
+          );
+        }
+      );
     });
 
     const fetchCategories = async () => {
       try {
         const data = await categoryApi.getAllCategories();
-        categories.value = data.response.categories.map((cat: { idCategory: any; name: any; }) => ({
-          value: cat.idCategory,
-          text: cat.name
-        }));
+        categories.value = data.response.categories.map(
+          (cat: { idCategory: any; name: any }) => ({
+            value: cat.idCategory,
+            text: cat.name,
+          })
+        );
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];
@@ -334,11 +453,11 @@ export default defineComponent({
     });
 
     const fields = [
-      { key: "idProduct", label: "ID", sortable:true },
-      { key: "name", label: "Nombre del Producto", sortable:true },
-      { key: "description", label: "Descripción", sortable:true },
-      { key: "categories", label: "Categorías", sortable:true },
-      { key: "actions", label: "Acciones" }
+      { key: "idProduct", label: "ID", sortable: true },
+      { key: "name", label: "Nombre del Producto", sortable: true },
+      { key: "description", label: "Descripción", sortable: true },
+      { key: "categories", label: "Categorías", sortable: true },
+      { key: "actions", label: "Acciones" },
     ];
 
     return {
@@ -476,11 +595,13 @@ export default defineComponent({
   gap: 10px;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s;
 }
 
-.fade-enter, .fade-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
