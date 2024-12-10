@@ -285,7 +285,40 @@ export default defineComponent({
 
 
 
+
 <style scoped>
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.search-input {
+  padding-left: 30px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
 .header {
   width: 100%;
   height: 25vh;
@@ -316,11 +349,6 @@ export default defineComponent({
   background-color: #f1f1f1;
   color: #333;
   font-weight: bold;
-  padding: 10px;
-}
-
-.b-table tbody td {
-  padding: 10px;
 }
 
 .b-table tbody tr:hover {
@@ -388,11 +416,13 @@ export default defineComponent({
   gap: 10px;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s;
 }
 
-.fade-enter, .fade-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -402,47 +432,104 @@ export default defineComponent({
   left: 20px;
   z-index: 1050;
 }
-.search-container {
+
+.color-box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.stock-name {
+  cursor: pointer;
+  color: #007bff;
+}
+
+.stock-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.form-container {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.button-group {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
-.search-input-container {
-  position: relative;
-  flex-grow: 1;
-}
-
-.search-icon {
-  position: absolute;
-  top: 40%;
-  left: 10px;
-  transform: translateY(-50%);
-  color: #aaa;
-}
-
-.search-input {
-  padding-left: 30px;
-  border-radius: 20px;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.3s;
-}
-
-.search-input:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-.spinner-container {
+.image-preview {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.product-name {
-  cursor: pointer;
+.preview-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.drop-area {
+  border: 2px dashed #007bff;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
   color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.drop-area:hover {
+  background-color: #e9f5ff;
+}
+
+.b-form-group i {
+  margin-right: 5px;
 }
 </style>
