@@ -50,7 +50,7 @@ export default {
             <div class="col-md-4 mb-4">
               <b-card class="text-center animate__animated animate__bounceIn feature-card">
                 <b-icon icon="basket-fill" variant="info" font-scale="3"></b-icon>
-                <h3 class="mt-3">Variedad de Productos</h3>
+                <h3 class="mt-3">Productos</h3>
                 <p>Descubre una amplia gama de productos para todos los gustos y ocasiones.</p>
               </b-card>
             </div>
