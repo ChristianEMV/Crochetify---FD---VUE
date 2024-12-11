@@ -43,7 +43,7 @@ export default {
             <div class="col-md-4 mb-4">
               <b-card class="text-center animate__animated animate__bounceIn feature-card">
                 <b-icon icon="star-fill" variant="warning" font-scale="3"></b-icon>
-                <h3 class="mt-3">Calidad maxima</h3>
+                <h3 class="mt-3">Calidad 100% buena</h3>
                 <p>Todos los productos están hechos a mano con materiales de la más alta calida y 100% ecologicos.</p>
               </b-card>
             </div>
