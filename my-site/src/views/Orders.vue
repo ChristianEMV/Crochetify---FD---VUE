@@ -22,84 +22,91 @@
         <i class="fas fa-search search-icon"></i>
         <b-form-input
           v-model="searchQuery"
-          placeholder="Buscar por ID o Producto..."
+          placeholder="Buscar..."
           class="search-input"
         ></b-form-input>
       </div>
-      <b-table
-        :items="filteredOrders"
-        :fields="fields"
-        :current-page="currentPage"
-        :per-page="perPage"
-        responsive
-        striped
-        hover
-        small
-      >
-        <template #cell(idOrden)="row">
-          <b-button
-            variant="link"
-            class="text-primary"
-            @click="showOrderModal(row.item)"
-          >
-            {{ row.item.idOrden }}
-          </b-button>
-        </template>
 
-        <template #cell(ordenProducts)="row">
-          {{
-            row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
-              ? row.item.ordenProducts
-                  .map(
-                    (product: any) =>
-                      product.product?.name || "Producto desconocido"
-                  )
-                  .join(", ")
-              : "No hay productos"
-          }}
-        </template>
+      <div v-if="isLoading" class="spinner-container">
+        <b-spinner class="custom-spinner" label="Loading..."></b-spinner>
+      </div>
 
-        <template #cell(shipmentStatus)="row">
-          <span
-            :class="
-              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
-                ? 'text-success'
-                : ''
-            "
-          >
-            {{
-              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
-                ? "Enviado"
-                : "Sin enviar"
-            }}
-          </span>
-        </template>
-
-        <template #cell(actions)="row">
-          <b-button
-            :disabled="
-              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
-            "
-            variant="success"
-            @click="showCreateShipmentModal(row.item)"
-          >
-            {{
-              row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
-                ? "Enviado"
-                : "Enviar"
-            }}
-          </b-button>
-        </template>
-      </b-table>
-
-      <!-- Paginador -->
-      <div class="d-flex justify-content-center mt-3">
-        <b-pagination
-          v-model="currentPage"
-          :total-rows="filteredOrders.length"
+      <div v-else>
+        <b-table
+          :items="filteredOrders"
+          :fields="fields"
+          :current-page="currentPage"
           :per-page="perPage"
-          aria-controls="my-table"
-        ></b-pagination>
+          responsive
+          striped
+          hover
+          small
+        >
+          <template #cell(idOrden)="row">
+            <b-button
+              variant="link"
+              class="text-primary"
+              @click="showOrderModal(row.item)"
+            >
+              {{ row.item.idOrden }}
+            </b-button>
+          </template>
+
+          <template #cell(ordenProducts)="row">
+            {{
+              row.item.ordenProducts && Array.isArray(row.item.ordenProducts)
+                ? row.item.ordenProducts
+                    .map(
+                      (product: any) =>
+                        product.product?.name || "Producto desconocido"
+                    )
+                    .join(", ")
+                : "No hay productos"
+            }}
+          </template>
+
+          <template #cell(shipmentStatus)="row">
+            <span
+              :class="
+                row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+                  ? 'text-success'
+                  : ''
+              "
+            >
+              {{
+                row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+                  ? "Enviado"
+                  : "Sin enviar"
+              }}
+            </span>
+          </template>
+
+          <template #cell(actions)="row">
+            <b-button
+              :disabled="
+                row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+              "
+              variant="success"
+              @click="showCreateShipmentModal(row.item)"
+            >
+              {{
+                row.item.shipmentStatus === 1 || row.item.shipmentStatus === 2
+                  ? "Enviado"
+                  : "Enviar"
+              }}
+            </b-button>
+          </template>
+        </b-table>
+
+        <!-- Paginador -->
+        <div class="d-flex justify-content-center mt-3">
+          <b-pagination
+            v-model="currentPage"
+            :total-rows="filteredOrders.length"
+            :per-page="perPage"
+            aria-controls="my-table"
+          ></b-pagination>
+        </div>
       </div>
     </div>
 
@@ -171,6 +178,7 @@ export default defineComponent({
   components: { Navbar, Sidebar },
   setup() {
     const isSidebarOpen = ref(false);
+    const isLoading = ref(true);
     const alert = reactive({ show: false, message: "", type: "success" });
     const orders = ref([]);
     const searchQuery = ref("");
@@ -200,6 +208,7 @@ export default defineComponent({
 
     const fetchOrders = async () => {
       try {
+        isLoading.value = true;
         const responseOrders = await apiOrden.getAllOrdenes();
         const responseShipments = await apiShipments.getAllShipments();
 
@@ -222,6 +231,8 @@ export default defineComponent({
         alert.show = true;
         alert.message = "Error al cargar las órdenes o envíos.";
         alert.type = "danger";
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -286,6 +297,7 @@ export default defineComponent({
 
     return {
       isSidebarOpen,
+      isLoading,
       alert,
       orders,
       searchQuery,
