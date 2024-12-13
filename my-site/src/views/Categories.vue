@@ -148,10 +148,11 @@ export default defineComponent({
     const editCategoryData = reactive({ id: 0, name: "" });
     const categories = ref([]);
     const searchQuery = ref("");
-    const showCategoryModal = ref(false);
-    const selectedCategory = ref<{ id: number; name: string } | null>(null);
-    const currentPage = ref(1); // Página actual
-    const itemsPerPage = ref(10); // Elementos por página
+    const currentPage = ref(1);
+    const itemsPerPage = ref(10);
+
+    const localDB = new PouchDB("categories_offline");
+    const remoteDB = new PouchDB("categories_pending");
 
     const paginatedCategories = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage.value;
@@ -175,14 +176,26 @@ export default defineComponent({
     };
 
     const createCategory = async () => {
-      try {
-        await categoryApi.createCategory({ name: newCategoryData.name });
-        await fetchCategories();
-        showAlert("Categoría creada con éxito", "success");
+      const category = { name: newCategoryData.name };
+
+      if (navigator.onLine) {
+        try {
+          await categoryApi.createCategory(category);
+          await fetchCategories();
+          showAlert("Categoría creada con éxito", "success");
+          showCreateForm.value = false;
+        } catch (error) {
+          showAlert("Error al crear la categoría", "danger");
+          console.error("Error al crear la categoría:", error);
+        }
+      } else {
+        await remoteDB.put({
+          _id: new Date().toISOString(),
+          method: "POST",
+          data: category
+        });
+        showAlert("Categoría guardada localmente. Se sincronizará al estar online", "info");
         showCreateForm.value = false;
-      } catch (error) {
-        showAlert("Error al crear la categoría", "danger");
-        console.error("Error al crear la categoría:", error);
       }
     };
 
@@ -193,26 +206,47 @@ export default defineComponent({
     };
 
     const updateCategoryName = async () => {
-  try {
-    await categoryApi.updateCategoryName(editCategoryData.id, editCategoryData.name);
-    await fetchCategories();
-    showAlert("Nombre de la categoría actualizado con éxito", "success");
-    showEditForm.value = false;
-  } catch (error) {
-    showAlert("Error al actualizar el nombre de la categoría", "danger");
-    console.error("Error al actualizar el nombre de la categoría:", error);
-  }
-};
+      const category = { idCategory: editCategoryData.id, name: editCategoryData.name };
 
+      if (navigator.onLine) {
+        try {
+          await categoryApi.updateCategoryName(editCategoryData.id, editCategoryData.name);
+          await fetchCategories();
+          showAlert("Nombre de la categoría actualizado con éxito", "success");
+          showEditForm.value = false;
+        } catch (error) {
+          showAlert("Error al actualizar la categoría", "danger");
+          console.error("Error al actualizar la categoría:", error);
+        }
+      } else {
+        await remoteDB.put({
+          _id: new Date().toISOString(),
+          method: "PUT",
+          data: category
+        });
+        showAlert("Cambios guardados localmente. Se sincronizarán al estar online", "info");
+        showEditForm.value = false;
+      }
+    };
 
     const fetchCategories = async () => {
       try {
         isLoading.value = true;
-        const data = await categoryApi.getAllCategories();
-        categories.value = data.response.categories.map((cat: any) => ({
-          id: cat.idCategory,
-          name: cat.name
-        }));
+        if (navigator.onLine) {
+          const data = await categoryApi.getAllCategories();
+          categories.value = data.response.categories.map((cat: any) => ({
+            id: cat.idCategory,
+            name: cat.name
+          }));
+
+          await localDB.bulkDocs(categories.value.map(cat => ({
+            _id: cat.id.toString(),
+            ...cat
+          })), { overwrite: true });
+        } else {
+          const localData = await localDB.allDocs({ include_docs: true });
+          categories.value = localData.rows.map(row => row.doc);
+        }
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];
@@ -221,8 +255,30 @@ export default defineComponent({
       }
     };
 
+    const syncOfflineChanges = async () => {
+      if (!navigator.onLine) return;
+
+      const pendingChanges = await remoteDB.allDocs({ include_docs: true });
+      for (const { doc } of pendingChanges.rows) {
+        try {
+          if (doc.method === "POST") {
+            await categoryApi.createCategory(doc.data);
+          } else if (doc.method === "PUT") {
+            await categoryApi.updateCategoryName(doc.data.idCategory, doc.data.name);
+          }
+
+          await remoteDB.remove(doc);
+        } catch (error) {
+          console.error("Error al sincronizar los cambios:", error);
+        }
+      }
+
+      fetchCategories();
+    };
+
     onMounted(() => {
       fetchCategories();
+      window.addEventListener("online", syncOfflineChanges);
     });
 
     const fields = [
@@ -266,8 +322,6 @@ export default defineComponent({
       updateCategoryName,
       fetchCategories,
       isLoading,
-      showCategoryModal,
-      selectedCategory,
       searchQuery,
       filteredCategories,
       paginatedCategories,
@@ -277,6 +331,7 @@ export default defineComponent({
   }
 });
 </script>
+
 <style scoped>
 .header {
   width: 100%;

@@ -1,24 +1,88 @@
 import axios from 'axios';
 
+
+// Crear instancia de Axios
 const instance = axios.create({
-   baseURL: 'http://54.146.53.211:8087/api/crochetify',
-  //baseURL: 'http://localhost:8080/api/crochetify',
+  baseURL: 'http://localhost:8080/api/crochetify', // Base URL de la API
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Interceptor de solicitudes: Agregar token y manejar offline
 instance.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Agregar token de autorización si está disponible
     const token = localStorage.getItem('authToken');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`; // Agregar token al header
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
+
+    // Verificar conexión a Internet
+    if (!navigator.onLine) {
+      const pendingRequest = {
+        _id: new Date().toISOString(), // ID único basado en el timestamp
+        method: config.method,
+        url: config.url,
+        data: config.data || null,
+        params: config.params || null,
+      };
+
+      // Guardar la solicitud en PouchDB
+      await pendingRequestsDB.put(pendingRequest);
+      console.log('Solicitud guardada localmente en PouchDB:', pendingRequest);
+
+      // Rechazar la solicitud con un error controlado
+      return Promise.reject(new Error('Sin conexión a Internet. La solicitud se guardará localmente.'));
+    }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error) // Manejo de errores en el interceptor
 );
+
+// Función para sincronizar las solicitudes pendientes
+const syncPendingRequests = async () => {
+  if (!navigator.onLine) return; // Solo sincronizar si hay conexión
+
+  const pendingRequests = await pendingRequestsDB.allDocs({ include_docs: true });
+
+  if (!pendingRequests.rows.length) {
+    console.log('No hay solicitudes pendientes para sincronizar.');
+    return;
+  }
+
+  console.log(`Sincronizando ${pendingRequests.rows.length} solicitudes pendientes...`);
+  for (const { doc } of pendingRequests.rows) {
+    try {
+      const response = await axios({
+        method: doc.method,
+        url: doc.url.startsWith('http') ? doc.url : `${instance.defaults.baseURL}${doc.url}`,
+        data: doc.data,
+        params: doc.params,
+      });
+
+      if (response.status >= 200 && response.status < 300) {
+        console.log('Solicitud sincronizada exitosamente:', response.data);
+        await pendingRequestsDB.remove(doc); // Eliminar solicitud sincronizada
+      } else {
+        console.error('Error al sincronizar la solicitud. Código:', response.status);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error al sincronizar la solicitud:', error.message);
+      } else {
+        console.error('Error desconocido:', error);
+      }
+    }
+  }
+};
+
+// Escuchar eventos para la sincronización automática
+window.addEventListener('online', async () => {
+  console.log('Conexión restaurada, sincronizando datos...');
+  await syncPendingRequests();
+});
 
 
 export const categoryApi = {
