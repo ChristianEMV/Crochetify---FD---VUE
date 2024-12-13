@@ -6,6 +6,10 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 
+// Define global si no está disponible
+window.global = window;
+
+
 const app = createApp(App);
 
 // Configurar rutas y plugins

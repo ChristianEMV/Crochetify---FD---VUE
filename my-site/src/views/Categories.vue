@@ -193,17 +193,16 @@ export default defineComponent({
     };
 
     const updateCategoryName = async () => {
-  try {
-    await categoryApi.updateCategoryName(editCategoryData.id, editCategoryData.name);
-    await fetchCategories();
-    showAlert("Nombre de la categoría actualizado con éxito", "success");
-    showEditForm.value = false;
-  } catch (error) {
-    showAlert("Error al actualizar el nombre de la categoría", "danger");
-    console.error("Error al actualizar el nombre de la categoría:", error);
-  }
-};
-
+      try {
+        await categoryApi.updateCategoryName(editCategoryData.id, editCategoryData.name);
+        await fetchCategories();
+        showAlert("Nombre de la categoría actualizado con éxito", "success");
+        showEditForm.value = false;
+      } catch (error) {
+        showAlert("Error al actualizar el nombre de la categoría", "danger");
+        console.error("Error al actualizar el nombre de la categoría:", error);
+      }
+    };
 
     const fetchCategories = async () => {
       try {
@@ -213,6 +212,7 @@ export default defineComponent({
           id: cat.idCategory,
           name: cat.name
         }));
+        console.log("Categorías cargadas en caché:", categories.value);
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
         categories.value = [];
@@ -277,6 +277,8 @@ export default defineComponent({
   }
 });
 </script>
+
+
 <style scoped>
 .header {
   width: 100%;
