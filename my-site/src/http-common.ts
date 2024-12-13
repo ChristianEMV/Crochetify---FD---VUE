@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Crear instancia de Axios
 const instance = axios.create({
-  baseURL: 'http://localhost:8080/api/crochetify', // Base URL de la API
+  baseURL: 'http://54.146.53.211:8087/api/crochetify', // Base URL de la API
   headers: {
     'Content-Type': 'application/json',
   },
