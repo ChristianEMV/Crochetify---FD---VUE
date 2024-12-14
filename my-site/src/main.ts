@@ -27,6 +27,7 @@ if ('serviceWorker' in navigator) {
       .catch(error => console.error('Error al registrar el Service Worker:', error));
   });
 } */
+  console.log('Ruta de service-worker:', window.location.origin + '/service-worker.js');
 
 //if (navigator.serviceWorker) {
   console.log('Service Worker es soportado2');
