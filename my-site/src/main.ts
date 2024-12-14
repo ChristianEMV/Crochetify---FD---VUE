@@ -38,3 +38,18 @@ if ('serviceWorker' in navigator) {
         }
      });
 //}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => {
+        console.log('Service Worker registrado exitosamente');
+        if (Notification.permission !== 'granted') {
+          Notification.requestPermission();
+        }
+      })
+      .catch(error => console.error('Error al registrar el Service Worker:', error));
+  });
+} else {
+  console.log('Service Worker no es soportado en este navegador');
+}
