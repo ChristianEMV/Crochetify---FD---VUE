@@ -28,8 +28,8 @@ if ('serviceWorker' in navigator) {
   });
 } */
   console.log('Ruta de service-worker:', window.location.origin + '/service-worker.js');
-
-//if (navigator.serviceWorker) {
+  console.log(navigator.serviceWorker);
+if (navigator.serviceWorker) {
   console.log('Service Worker es soportado2');
   navigator.serviceWorker.register('/service-worker.js')
   .then(() => {
@@ -37,7 +37,7 @@ if ('serviceWorker' in navigator) {
             Notification.requestPermission();
         }
      });
-//}
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
