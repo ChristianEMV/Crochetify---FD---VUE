@@ -12,7 +12,6 @@ const urlsToCache = [
     'http://54.146.53.211:8007/categories'
 ];
 
-
 // Instalar el Service Worker y guardar los recursos en caché
 self.addEventListener('install', (event) => {
     console.log('[Service Worker] Instalando...');
@@ -150,3 +149,6 @@ self.addEventListener('push', (event) => {
     };
     event.waitUntil(self.registration.showNotification('Notificación Push', options));
 });
+
+
+
