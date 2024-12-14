@@ -14,9 +14,11 @@ app.use(createBootstrap());
 
 // Montar la app en el DOM
 app.mount('#app');
+console.log("nav",navigator);
+console.log(navigator.serviceWorker);
 
 // Registrar Service Worker
-if ('serviceWorker' in navigator) {
+if ('service-worker' in navigator) {
   console.log('Service Worker es soportado');
   window.addEventListener('load', () => {
     navigator.serviceWorker
