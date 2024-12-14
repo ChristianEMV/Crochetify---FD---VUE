@@ -30,8 +30,8 @@ if ('serviceWorker' in navigator) {
 
 //if (navigator.serviceWorker) {
   console.log('Service Worker es soportado2');
-  navigator.serviceWorker.register('../public/service-worker.js')
-     .then(() => {
+  navigator.serviceWorker.register('/service-worker.js')
+  .then(() => {
         if (Notification.permission !== 'granted') {
             Notification.requestPermission();
         }
