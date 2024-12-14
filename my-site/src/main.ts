@@ -19,7 +19,7 @@ app.mount('#app');
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/service-worker.js') // Cambia la ruta si está en otro lugar
+      .register('../public/service-worker.js') // Cambia la ruta si está en otro lugar
       .then(() => console.log('Service Worker registrado exitosamente'))
       .catch(error => console.error('Error al registrar el Service Worker:', error));
   });
