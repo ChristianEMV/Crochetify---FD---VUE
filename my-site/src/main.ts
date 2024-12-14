@@ -18,7 +18,7 @@ console.log("nav",navigator);
 console.log(navigator.serviceWorker);
 
 // Registrar Service Worker
-if ('service-worker' in navigator) {
+if ('serviceWorker' in navigator) {
   console.log('Service Worker es soportado');
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -26,4 +26,14 @@ if ('service-worker' in navigator) {
       .then(() => console.log('Service Worker registrado exitosamente'))
       .catch(error => console.error('Error al registrar el Service Worker:', error));
   });
+}
+
+if (navigator.serviceWorker) {
+  console.log('Service Worker es soportado2');
+  navigator.serviceWorker.register('/service-worker.js')
+     .then(() => {
+        if (Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
+     });
 }
