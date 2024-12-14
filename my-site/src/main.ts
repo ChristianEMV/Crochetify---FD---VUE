@@ -17,6 +17,7 @@ app.mount('#app');
 
 // Registrar Service Worker
 if ('serviceWorker' in navigator) {
+  console.log('Service Worker es soportado');
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('../public/service-worker.js') // Cambia la ruta si está en otro lugar
