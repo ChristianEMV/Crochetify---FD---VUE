@@ -150,5 +150,5 @@ self.addEventListener('push', (event) => {
     event.waitUntil(self.registration.showNotification('Notificación Push', options));
 });
 
-*/
+
 
