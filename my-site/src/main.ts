@@ -17,7 +17,7 @@ app.mount('#app');
 console.log("nav",navigator);
 console.log(navigator.serviceWorker);
 
-// Registrar Service Worker
+ /*
 if ('serviceWorker' in navigator) {
   console.log('Service Worker es soportado');
   window.addEventListener('load', () => {
@@ -26,9 +26,9 @@ if ('serviceWorker' in navigator) {
       .then(() => console.log('Service Worker registrado exitosamente'))
       .catch(error => console.error('Error al registrar el Service Worker:', error));
   });
-}
+} */
 
-if (navigator.serviceWorker) {
+//if (navigator.serviceWorker) {
   console.log('Service Worker es soportado2');
   navigator.serviceWorker.register('/service-worker.js')
      .then(() => {
@@ -36,4 +36,4 @@ if (navigator.serviceWorker) {
             Notification.requestPermission();
         }
      });
-}
+//}
